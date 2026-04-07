@@ -3,6 +3,7 @@ name: homepage-dashboard
 description: 公开访问的首页看板，展示赛程、积分榜、数据排行和最近战报
 status: backlog
 created: 2026-04-07T15:01:11Z
+phase: 1
 ---
 
 # PRD: Homepage Dashboard

@@ -3,6 +3,7 @@ name: video-replay
 description: 比赛视频上传、存储和回放，支持精彩时刻标记
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 2
 ---
 
 # PRD: Video Replay

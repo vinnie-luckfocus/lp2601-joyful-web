@@ -3,6 +3,7 @@ name: game-schedule
 description: 赛程管理系统，包含完整赛程展示、比赛报名、报名人数统计
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 1
 ---
 
 # PRD: Game Schedule

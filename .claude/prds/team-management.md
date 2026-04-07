@@ -3,6 +3,7 @@ name: team-management
 description: 球队信息展示，包含队名、队徽、简介、成员列表和赛季战绩
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 1
 ---
 
 # PRD: Team Management

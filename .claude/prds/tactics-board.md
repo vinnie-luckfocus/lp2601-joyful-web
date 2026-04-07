@@ -3,6 +3,7 @@ name: tactics-board
 description: 战术板展示，包含棒次安排、守备位置、战术说明和可视化布阵图
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 1
 ---
 
 # PRD: Tactics Board

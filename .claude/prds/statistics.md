@@ -3,6 +3,7 @@ name: statistics
 description: 比赛数据统计与展示，包含打席记录录入和个人数据统计图表
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 1
 ---
 
 # PRD: Statistics

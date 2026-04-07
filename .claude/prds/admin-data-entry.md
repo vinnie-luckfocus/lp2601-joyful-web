@@ -1,15 +1,21 @@
 ---
 name: admin-data-entry
-description: 管理后台数据录入功能，包含球队/队员/赛程管理、比赛数据录入、视频上传
+description: 管理后台框架和入口，提供基础数据管理功能入口
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 0
 ---
 
 # PRD: Admin Data Entry
 
 ## Executive Summary
 
-管理后台是 Joyful 联赛网站的运营中枢，供管理员完成所有数据维护工作：录入球队和队员信息、创建赛程、录入比赛数据、上传视频。是网站内容的主要入口。
+管理后台是 Joyful 联赛网站的运营中枢框架，提供管理功能的统一入口。本PRD定义管理后台的基础框架、导航结构和权限控制。具体的数据录入、视频上传等功能实现详见其他PRD。
+
+**注意**：本PRD仅提供管理后台的"框架和入口"，具体功能实现依赖：
+- 球队/队员管理 → [Team Management](./team-management.md)
+- 数据录入 → [Statistics](./statistics.md)
+- 视频上传 → [Video Replay](./video-replay.md)
 
 ## Problem Statement
 
@@ -141,6 +147,11 @@ POST   /api/admin/videos/:id/highlights
 
 ## Out of Scope
 
+**注意：以下功能的具体实现详见其他PRD，本PRD只定义管理后台框架和入口。**
+
+- 球队/队员管理的详细实现（见 [Team Management](./team-management.md)）
+- 数据统计录入的详细流程（见 [Statistics](./statistics.md)）
+- 视频上传播放的详细实现（见 [Video Replay](./video-replay.md)）
 - 复杂的权限管理（多角色多层级）
 - 数据审批流程
 - 操作日志审计界面

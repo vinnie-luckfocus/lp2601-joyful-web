@@ -3,6 +3,7 @@ name: user-authentication
 description: 用户认证系统，支持管理员分配账号登录，为后续会员系统预留扩展
 created: 2026-04-07T15:01:11Z
 status: backlog
+phase: 1
 ---
 
 # PRD: User Authentication
