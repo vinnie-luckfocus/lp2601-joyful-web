@@ -51,17 +51,17 @@ describe('useRecentGames', () => {
     vi.clearAllMocks();
     localStorageStore = {};
 
-    // Mock localStorage with working implementation
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key: string) => {
+    // Mock localStorage with working implementation (use the mocked localStorage from setup.ts)
+    (localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
       return localStorageStore[key] || null;
     });
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key: string, value: string) => {
+    (localStorage.setItem as ReturnType<typeof vi.fn>).mockImplementation((key: string, value: string) => {
       localStorageStore[key] = value;
     });
-    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key: string) => {
+    (localStorage.removeItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
       delete localStorageStore[key];
     });
-    vi.spyOn(Storage.prototype, 'clear').mockImplementation(() => {
+    (localStorage.clear as ReturnType<typeof vi.fn>).mockImplementation(() => {
       localStorageStore = {};
     });
   });
@@ -148,17 +148,19 @@ describe('useRecentGames', () => {
   });
 
   it('should use cached data on error if available', async () => {
-    // Set up valid cache
-    const cachedData = {
-      games: mockGamesResponse.data,
-      timestamp: Date.now(),
-      lastUpdated: '2024-04-08T16:00:00Z',
-    };
-    localStorageStore['recentGamesCache'] = JSON.stringify(cachedData);
+    // First, populate the cache with a successful request
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockGamesResponse });
 
+    const { result, rerender } = renderHook(() => useRecentGames(3));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Now simulate an error on refetch
     vi.mocked(api.get).mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useRecentGames(3));
+    result.current.refetch();
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -170,6 +172,24 @@ describe('useRecentGames', () => {
   });
 
   it('should refetch when refetch is called', async () => {
+    const updatedResponse = {
+      ...mockGamesResponse,
+      data: [
+        ...mockGamesResponse.data,
+        {
+          id: 'game-3',
+          homeTeam: { id: 'team-5', name: '小熊队', score: 4 },
+          awayTeam: { id: 'team-6', name: '红雀队', score: 3 },
+          matchDate: '2024-04-06T18:00:00Z',
+          venue: '瑞格利球场',
+          status: 'completed',
+          highlights: [],
+          lastUpdated: '2024-04-06T20:00:00Z',
+        },
+      ],
+    };
+
+    // First call returns 2 games
     vi.mocked(api.get).mockResolvedValueOnce({ data: mockGamesResponse });
 
     const { result } = renderHook(() => useRecentGames(3));
@@ -178,25 +198,10 @@ describe('useRecentGames', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Reset mock for refetch
-    vi.mocked(api.get).mockResolvedValueOnce({
-      data: {
-        ...mockGamesResponse,
-        data: [
-          ...mockGamesResponse.data,
-          {
-            id: 'game-3',
-            homeTeam: { id: 'team-5', name: '小熊队', score: 4 },
-            awayTeam: { id: 'team-6', name: '红雀队', score: 3 },
-            matchDate: '2024-04-06T18:00:00Z',
-            venue: '瑞格利球场',
-            status: 'completed',
-            highlights: [],
-            lastUpdated: '2024-04-06T20:00:00Z',
-          },
-        ],
-      },
-    });
+    expect(result.current.games).toHaveLength(2);
+
+    // Reset mock for refetch - returns 3 games
+    vi.mocked(api.get).mockResolvedValueOnce({ data: updatedResponse });
 
     // Call refetch
     result.current.refetch();
@@ -205,7 +210,9 @@ describe('useRecentGames', () => {
       expect(api.get).toHaveBeenCalledTimes(2);
     });
 
-    expect(result.current.games).toHaveLength(3);
+    await waitFor(() => {
+      expect(result.current.games).toHaveLength(3);
+    });
   });
 
   it('should respect limit parameter', async () => {
@@ -219,6 +226,9 @@ describe('useRecentGames', () => {
   });
 
   it('should handle empty response', async () => {
+    // Clear any cached data first
+    localStorageStore = {};
+
     vi.mocked(api.get).mockResolvedValueOnce({
       data: {
         data: [],

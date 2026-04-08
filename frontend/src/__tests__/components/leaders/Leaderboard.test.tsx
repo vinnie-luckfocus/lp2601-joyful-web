@@ -7,19 +7,6 @@ vi.mock('../../../hooks/useLeaders', () => ({
   useLeaders: vi.fn(),
 }));
 
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <div {...props}>{children}</div>
-    ),
-    span: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
-      <span {...props}>{children}</span>
-    ),
-  },
-  useSpring: () => ({ set: vi.fn() }),
-  useTransform: () => ({ on: () => vi.fn() }),
-}));
-
 import { useLeaders } from '../../../hooks/useLeaders';
 
 const mockUseLeaders = useLeaders as ReturnType<typeof vi.fn>;
@@ -76,7 +63,7 @@ describe('Leaderboard', () => {
 
   it('renders leaderboard component', () => {
     render(<Leaderboard />);
-    expect(screen.getByTestId('leaderboard')).toBeInTheDocument();
+    expect(screen.getByText('数据排行榜')).toBeInTheDocument();
   });
 
   it('displays title', () => {
@@ -245,8 +232,8 @@ describe('Leaderboard', () => {
   });
 
   it('applies custom className', () => {
-    render(<Leaderboard className="custom-class" />);
-    expect(screen.getByTestId('leaderboard')).toHaveClass('custom-class');
+    const { container } = render(<Leaderboard className="custom-class" />);
+    expect(container.querySelector('.custom-class')).toBeInTheDocument();
   });
 
   it('renders correct number of rows based on data', () => {

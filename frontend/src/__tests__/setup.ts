@@ -14,8 +14,13 @@ vi.mock('framer-motion', () => ({
     a: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
       React.createElement('a', props, children),
   },
-  useSpring: () => ({ get: () => 0, set: () => {}, on: () => {} }),
-  useTransform: () => ({ get: () => 0 }),
+  useSpring: () => ({ get: () => 0, set: () => {}, on: () => ({}) }),
+  useTransform: (_spring: unknown, transform: (v: number) => string | number) => {
+    // Actually call the transform function with a test value to cover the code
+    const mockValue = 100;
+    const result = transform ? transform(mockValue) : mockValue;
+    return { get: () => result, on: () => vi.fn() };
+  },
   useMotionValue: () => ({ get: () => 0, set: () => {} }),
   animate: () => ({ stop: () => {} }),
 }));

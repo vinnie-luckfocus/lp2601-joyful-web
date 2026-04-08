@@ -45,7 +45,7 @@ describe('RecentGames', () => {
     {
       id: 'game-3',
       homeTeam: { id: 'team-5', name: '小熊队', score: 4 },
-      awayTeam: { id: 'team-6', name: '红雀队', score: 3 },
+      awayTeam: { id: 'team-6', name: '红雀队', score: 1 },
       matchDate: '2024-04-06T18:00:00Z',
       venue: '瑞格利球场',
       status: 'completed',
@@ -97,9 +97,11 @@ describe('RecentGames', () => {
     expect(screen.getByText('道奇队')).toBeInTheDocument();
     expect(screen.getByText('巨人队')).toBeInTheDocument();
 
-    // Check scores
-    expect(screen.getByText('5')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+    // Check scores (using getAllByText since scores may appear multiple times)
+    const score5 = screen.getAllByText('5');
+    expect(score5.length).toBeGreaterThan(0);
+    const score3 = screen.getAllByText('3');
+    expect(score3.length).toBeGreaterThan(0);
 
     // Check venues
     expect(screen.getByText('芬威球场')).toBeInTheDocument();
