@@ -24,6 +24,7 @@ export const RankBadge: React.FC<RankBadgeProps> = ({ rank }) => {
           : 'bg-gray-100 text-gray-700'
       }`}
       data-testid={`rank-badge-${rank}`}
+      aria-label={`排名 ${rank}${isTopThree ? ' (前三名)' : ''}`}
     >
       {rank}
     </span>
@@ -37,10 +38,17 @@ export interface WinRateBarProps {
 export const WinRateBar: React.FC<WinRateBarProps> = ({ winRate }) => {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-gray-900 w-12">
+      <span className="text-sm font-medium text-gray-900 w-12" aria-label={`胜率 ${winRate.toFixed(1)}%`}>
         {winRate.toFixed(1)}%
       </span>
-      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
+      <div
+        className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]"
+        role="progressbar"
+        aria-valuenow={winRate}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`胜率进度 ${winRate.toFixed(0)}%`}
+      >
         <div
           className="h-full bg-[#041E42] rounded-full transition-all duration-300"
           style={{ width: `${winRate}%` }}
@@ -60,6 +68,8 @@ export const TableRow: React.FC<TableRowProps> = ({ standing }) => {
     <tr
       className="hover:bg-gray-50 transition-colors"
       data-testid={`standing-row-${standing.id}`}
+      tabIndex={0}
+      aria-label={`${standing.name}, 排名 ${standing.rank}, 胜 ${standing.wins} 负 ${standing.losses}, 胜率 ${standing.win_percentage.toFixed(1)}%`}
     >
       <td className="px-4 py-4 whitespace-nowrap">
         <RankBadge rank={standing.rank} />
@@ -91,8 +101,8 @@ export interface EmptyStateProps {
 
 export const EmptyState: React.FC<EmptyStateProps> = ({ onRefresh }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4">
-      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+    <div className="flex flex-col items-center justify-center py-12 px-4" role="status" aria-live="polite">
+      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4" aria-hidden="true">
         <Trophy className="w-8 h-8 text-gray-400" />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -104,7 +114,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onRefresh }) => {
       {onRefresh && (
         <button
           onClick={onRefresh}
-          className="px-4 py-2 bg-[#041E42] text-white rounded-lg hover:bg-[#0a2a5c] transition-colors"
+          className="px-4 py-2 bg-[#041E42] text-white rounded-lg hover:bg-[#0a2a5c] transition-colors focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2"
+          aria-label="刷新积分榜数据"
         >
           刷新数据
         </button>

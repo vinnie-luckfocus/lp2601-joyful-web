@@ -51,30 +51,15 @@ export const getGameStatusColor = (status: string): string => {
 };
 
 export const GameCard: React.FC<GameCardProps> = ({ game, index = 0 }) => {
-  const cardVariants = {
-    hidden: {
-      opacity: 0,
-      y: 20,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        delay: index * 0.1,
-        ease: [0.25, 0.1, 0.25, 1],
-      },
-    },
-  };
-
   return (
     <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.1, ease: 'easeOut' }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-sm hover:shadow-md transition-shadow"
+      style={{ willChange: 'transform' }}
       data-testid="game-card"
+      className="bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-sm hover:shadow-md"
     >
       {/* Header: Date and Status */}
       <div className="flex items-center justify-between mb-4">

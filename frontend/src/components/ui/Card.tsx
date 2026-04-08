@@ -37,14 +37,14 @@ export const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }
   );
 };
 
-interface CardContentProps {
+interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
 }
 
-export const CardContent: React.FC<CardContentProps> = ({ children, className = '' }) => {
+export const CardContent: React.FC<CardContentProps> = ({ children, className = '', ...props }) => {
   return (
-    <div className={`p-6 ${className}`}>
+    <div className={`p-6 ${className}`} {...props}>
       {children}
     </div>
   );

@@ -31,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="/" className="flex items-center gap-2">
+            <a href="/" className="flex items-center gap-2" aria-label="MLB 数据平台 - 返回首页">
               <div className="w-8 h-8 bg-mlb-navy rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">MLB</span>
               </div>
@@ -42,17 +42,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8" aria-label="主导航">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-gray-600 hover:text-mlb-navy font-medium transition-colors"
+                className="text-gray-600 hover:text-mlb-navy font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded-md px-2 py-1"
               >
                 {link.label}
               </a>
             ))}
-          </div>
+          </nav>
 
           {/* Login/User Section */}
           <div className="hidden md:flex items-center">
@@ -80,10 +80,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 hover:text-mlb-navy p-2"
+              className="text-gray-600 hover:text-mlb-navy p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2"
               aria-label={mobileMenuOpen ? '关闭菜单' : '打开菜单'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
+              type="button"
             >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -98,6 +101,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
             className="md:hidden bg-white border-t border-gray-200"
+            id="mobile-menu"
+            role="navigation"
+            aria-label="移动端导航"
           >
             <div className="px-4 pt-2 pb-4 space-y-1">
               {navLinks.map((link) => (

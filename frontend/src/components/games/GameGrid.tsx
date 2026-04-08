@@ -99,9 +99,9 @@ export const GameGrid: React.FC<GameGridProps> = ({
   if (games.length === 0) {
     return (
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-mlb-navy">近期赛程</h2>
-        <div className="bg-gray-50 rounded-xl p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+        <h2 className="text-xl font-bold text-mlb-navy" id="games-section-title">近期赛程</h2>
+        <div className="bg-gray-50 rounded-xl p-12 text-center" role="status" aria-live="polite">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4" aria-hidden="true">
             <CalendarX size={32} className="text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无赛程</h3>
@@ -115,7 +115,7 @@ export const GameGrid: React.FC<GameGridProps> = ({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-mlb-navy">近期赛程</h2>
+        <h2 className="text-xl font-bold text-mlb-navy" id="games-section-title">近期赛程</h2>
         <div className="flex items-center gap-4">
           {lastUpdated && <DataFreshnessIndicator lastUpdated={lastUpdated} />}
           {showViewMore && (
@@ -124,15 +124,16 @@ export const GameGrid: React.FC<GameGridProps> = ({
               onClick={handleViewMoreClick}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
-              className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-1 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded ${
                 isRouteImplemented
                   ? 'text-mlb-red hover:text-mlb-red-dark'
                   : 'text-gray-400 cursor-not-allowed'
               }`}
               data-testid="view-more-link"
+              aria-label={isRouteImplemented ? '查看更多赛程' : '查看更多赛程 - 即将上线'}
             >
               查看更多
-              <ChevronRight size={16} />
+              <ChevronRight size={16} aria-hidden="true" />
             </a>
           )}
         </div>
@@ -161,6 +162,8 @@ export const GameGrid: React.FC<GameGridProps> = ({
         animate="visible"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         data-testid="game-grid"
+        role="region"
+        aria-labelledby="games-section-title"
       >
         {games.map((game, index) => (
           <GameCard key={game.id} game={game} index={index} />

@@ -13,10 +13,14 @@ vi.mock('framer-motion', () => ({
       React.createElement('span', props, children),
     a: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
       React.createElement('a', props, children),
+    h1: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
+      React.createElement('h1', props, children),
+    p: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) =>
+      React.createElement('p', props, children),
   },
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
   useSpring: () => ({ get: () => 0, set: () => {}, on: () => ({}) }),
   useTransform: (_spring: unknown, transform: (v: number) => string | number) => {
-    // Actually call the transform function with a test value to cover the code
     const mockValue = 100;
     const result = transform ? transform(mockValue) : mockValue;
     return { get: () => result, on: () => vi.fn() };
@@ -50,3 +54,6 @@ const localStorageMock = {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
+
+// Define global for tests
+(globalThis as typeof globalThis & { global: typeof globalThis }).global = globalThis;

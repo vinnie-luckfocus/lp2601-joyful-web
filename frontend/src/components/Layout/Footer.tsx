@@ -41,13 +41,13 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
   ];
 
   return (
-    <footer className={`bg-mlb-navy text-white ${className}`} data-testid="footer">
+    <footer className={`bg-mlb-navy text-white ${className}`} data-testid="footer" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center" aria-hidden="true">
                 <span className="text-mlb-navy font-bold text-sm">MLB</span>
               </div>
               <span className="text-xl font-bold">Joyful Web</span>
@@ -62,10 +62,10 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                  aria-label={social.label}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+                  aria-label={`访问我们的 ${social.label}`}
                 >
-                  <social.icon size={18} />
+                  <social.icon size={18} aria-hidden="true" />
                 </a>
               ))}
             </div>
@@ -73,8 +73,8 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
 
           {/* Links Sections */}
           {footerLinks.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">
+            <nav key={section.title} aria-labelledby={`footer-heading-${section.title}`}>
+              <h3 id={`footer-heading-${section.title}`} className="text-sm font-semibold uppercase tracking-wider mb-4">
                 {section.title}
               </h3>
               <ul className="space-y-3">
@@ -82,14 +82,14 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
                   <li key={link.href}>
                     <a
                       href={link.href}
-                      className="text-gray-300 text-sm hover:text-white transition-colors"
+                      className="text-gray-300 text-sm hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 rounded"
                     >
                       {link.label}
                     </a>
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 

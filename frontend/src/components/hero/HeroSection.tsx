@@ -32,7 +32,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' as const },
   };
 
   return (
@@ -46,6 +46,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         backgroundPosition: 'center',
       }}
       data-testid="hero-section"
+      role="banner"
+      aria-label={`${leagueName} - ${slogan}`}
     >
       {/* Background image loading state */}
       {backgroundImage && !imageLoaded && (
@@ -89,6 +91,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             size="lg"
             className="bg-mlb-red hover:bg-mlb-red-dark text-white font-bold px-8 py-3"
             data-testid="hero-login-button"
+            aria-label="登录到 MLB 数据平台"
           >
             登录
           </Button>

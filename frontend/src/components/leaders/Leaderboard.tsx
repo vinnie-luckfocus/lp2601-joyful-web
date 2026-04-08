@@ -43,7 +43,8 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ leader, rank, category 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: rank * 0.05 }}
-      className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${
+      style={{ willChange: 'transform' }}
+      className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${
         isTop3 ? 'bg-gradient-to-r from-[#C4A35A]/5 to-transparent' : ''
       }`}
       data-testid={`leader-row-${rank}`}
@@ -54,6 +55,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ leader, rank, category 
           isTop3 ? rankStyles[rank as 1 | 2 | 3] : 'bg-gray-100 text-gray-600'
         }`}
         data-testid={`rank-badge-${rank}`}
+        aria-label={`排名 ${rank}${isTop3 ? ' (前三名)' : ''}`}
       >
         {rank}
       </div>
@@ -62,8 +64,9 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({ leader, rank, category 
       <div className="flex-1 min-w-0">
         <a
           href={`/players/${leader.user_id}`}
-          className="text-[#3182CE] font-medium hover:underline truncate block"
+          className="text-[#3182CE] font-medium hover:underline truncate block focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded"
           data-testid={`player-link-${rank}`}
+          aria-label={`${leader.player_name}${leader.team_name ? `, ${leader.team_name}` : ''}`}
         >
           {leader.player_name}
         </a>
@@ -129,14 +132,30 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ className = '' }) => {
 
       {/* Tabs */}
       <div className="px-4 border-b border-gray-100">
-        <div className="flex gap-1" role="tablist" data-testid="category-tabs">
+        <div className="flex gap-1" role="tablist" aria-label="排行榜类别" data-testid="category-tabs">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               role="tab"
               aria-selected={activeCategory === tab.key}
+              aria-controls={`panel-${tab.key}`}
+              id={`tab-${tab.key}`}
+              tabIndex={activeCategory === tab.key ? 0 : -1}
               onClick={() => setActiveCategory(tab.key)}
-              className={`px-3 py-2 text-sm font-medium transition-colors relative ${
+              onKeyDown={(e) => {
+                // Keyboard navigation for tabs
+                const currentIndex = TABS.findIndex(t => t.key === activeCategory);
+                if (e.key === 'ArrowRight') {
+                  const nextIndex = (currentIndex + 1) % TABS.length;
+                  setActiveCategory(TABS[nextIndex].key);
+                  document.getElementById(`tab-${TABS[nextIndex].key}`)?.focus();
+                } else if (e.key === 'ArrowLeft') {
+                  const prevIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+                  setActiveCategory(TABS[prevIndex].key);
+                  document.getElementById(`tab-${TABS[prevIndex].key}`)?.focus();
+                }
+              }}
+              className={`px-3 py-2 text-sm font-medium transition-colors relative focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded-md ${
                 activeCategory === tab.key
                   ? 'text-[#3182CE]'
                   : 'text-gray-500 hover:text-gray-700'
@@ -158,7 +177,12 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ className = '' }) => {
       </div>
 
       {/* Content */}
-      <CardContent className="p-0">
+      <CardContent
+        className="p-0"
+        role="tabpanel"
+        id={`panel-${activeCategory}`}
+        aria-labelledby={`tab-${activeCategory}`}
+      >
         {isLoading ? (
           <div className="p-4 space-y-3" data-testid="leaderboard-skeleton">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -173,7 +197,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ className = '' }) => {
             ))}
           </div>
         ) : leaders.length === 0 ? (
-          <div className="p-8 text-center text-gray-500" data-testid="empty-state">
+          <div className="p-8 text-center text-gray-500" data-testid="empty-state" role="status" aria-live="polite">
             暂无数据
           </div>
         ) : (

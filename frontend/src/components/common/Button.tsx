@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -8,6 +7,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  ariaLabel?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -19,6 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   rightIcon,
   className = '',
   disabled,
+  ariaLabel,
   ...props
 }) => {
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded-button transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
@@ -39,17 +40,17 @@ export const Button: React.FC<ButtonProps> = ({
   const isDisabled = disabled || isLoading;
 
   return (
-    <motion.button
-      whileHover={isDisabled ? undefined : { y: -2 }}
-      whileTap={isDisabled ? undefined : { scale: 0.98 }}
+    <button
       className={`
         ${baseStyles}
         ${variantStyles[variant]}
         ${sizeStyles[size]}
-        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg cursor-pointer'}
+        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg cursor-pointer hover:-translate-y-0.5 active:scale-[0.98]'}
         ${className}
       `}
       disabled={isDisabled}
+      aria-label={ariaLabel}
+      aria-busy={isLoading}
       {...props}
     >
       {isLoading && (
@@ -58,6 +59,7 @@ export const Button: React.FC<ButtonProps> = ({
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"
@@ -77,7 +79,7 @@ export const Button: React.FC<ButtonProps> = ({
       {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
       {children}
       {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
-    </motion.button>
+    </button>
   );
 };
 

@@ -77,8 +77,9 @@ const RecentGameCard: React.FC<RecentGameCardProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
-      whileHover={{ y: -4, boxShadow: '0 10px 15px rgba(4, 30, 66, 0.1)' }}
-      className="bg-white rounded-card shadow-card border border-gray-200 overflow-hidden cursor-pointer transition-all duration-200"
+      whileHover={{ y: -4 }}
+      style={{ willChange: 'transform' }}
+      className="bg-white rounded-card shadow-card border border-gray-200 overflow-hidden cursor-pointer hover:shadow-lg"
       onClick={() => onClick?.(game.id)}
       data-testid="recent-game-card"
     >
