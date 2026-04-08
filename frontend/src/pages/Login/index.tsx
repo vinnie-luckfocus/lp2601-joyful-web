@@ -8,14 +8,28 @@ const Login = () => {
   const { login, isLoading, error } = useAuthStore();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationError('');
+
+    // Client-side validation
+    if (username.length < 3) {
+      setValidationError('Username must be at least 3 characters');
+      return;
+    }
+    if (password.length < 6) {
+      setValidationError('Password must be at least 6 characters');
+      return;
+    }
+
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       navigate('/admin');
-    } catch {
+    } catch (error) {
       // Error is handled by the store
+      console.error('Login failed:', error);
     }
   };
 
@@ -69,6 +83,12 @@ const Login = () => {
             />
           </div>
 
+          {validationError && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{validationError}</p>
+            </div>
+          )}
+
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">{error}</p>
@@ -84,11 +104,6 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Default credentials: admin / admin123
-          </p>
-        </div>
       </div>
     </div>
   );

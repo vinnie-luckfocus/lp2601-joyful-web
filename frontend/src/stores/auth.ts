@@ -30,9 +30,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data } = await api.post('/auth/login', { username, password });
       localStorage.setItem('token', data.token);
       set({ user: data.user, isAuthenticated: true, isLoading: false });
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
       set({
-        error: error.response?.data?.error || 'Login failed',
+        error: axiosError.response?.data?.error || 'Login failed',
         isLoading: false,
       });
       throw error;
@@ -45,13 +46,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuth: async () => {
+    set({ isLoading: true });
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      set({ isLoading: false });
+      return;
+    }
     try {
       const { data } = await api.get('/auth/me');
-      set({ user: data, isAuthenticated: true });
-    } catch {
+      set({ user: data, isAuthenticated: true, isLoading: false });
+    } catch (error) {
       localStorage.removeItem('token');
+      set({ user: null, isAuthenticated: false, isLoading: false });
+      console.error('Auth check failed:', error);
     }
   },
 }));

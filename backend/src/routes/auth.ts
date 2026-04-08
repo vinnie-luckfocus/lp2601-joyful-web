@@ -1,14 +1,27 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import pool from '../config/database';
 import { generateToken, verifyToken } from '../middleware/auth';
 import { comparePassword } from '../utils/password';
 
 const router = Router();
 
-interface LoginRequest {
-  username: string;
-  password: string;
-}
+// Rate limiter for login endpoint
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: { error: 'Too many login attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
+});
+
+// Input validation schema
+const loginSchema = z.object({
+  username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_]+$/),
+  password: z.string().min(6).max(128),
+});
 
 interface UserRow {
   id: number;
@@ -22,13 +35,15 @@ interface UserRow {
 }
 
 // POST /api/auth/login
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
-  const { username, password } = req.body as LoginRequest;
-
-  if (!username || !password) {
-    res.status(400).json({ error: 'Username and password are required' });
+router.post('/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
+  // Validate input with Zod
+  const parseResult = loginSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json({ error: 'Invalid input format' });
     return;
   }
+
+  const { username, password } = parseResult.data;
 
   try {
     const result = await pool.query<UserRow>(

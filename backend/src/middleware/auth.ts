@@ -9,7 +9,7 @@ if (!JWT_SECRET) {
 }
 
 export function generateToken(userId: string, role: string): string {
-  return jwt.sign({ userId, role }, JWT_SECRET!, { expiresIn: '7d' });
+  return jwt.sign({ userId, role }, JWT_SECRET!, { expiresIn: '2h' });
 }
 
 export function verifyToken(req: Request, res: Response, next: NextFunction): void {
@@ -28,5 +28,6 @@ export function verifyToken(req: Request, res: Response, next: NextFunction): vo
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });
+    return;
   }
 }
