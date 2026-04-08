@@ -1,3 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-mlb-navy: #041E42;
+  --color-mlb-red: #BF0D3E;
+  --color-gold: #C4A35A;
+  --bg-primary: #F5F7FA;
+  --bg-card: #FFFFFF;
+  --text-primary: #1A202C;
+  --text-secondary: #4A5568;
+}
+
 * {
   margin: 0;
   padding: 0;
