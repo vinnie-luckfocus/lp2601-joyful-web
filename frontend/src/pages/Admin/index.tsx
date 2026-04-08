@@ -1,8 +1,7 @@
-import React from 'react';
 import { AdminLayout } from '../../components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 
-const Admin: React.FC = () => {
+const Admin = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
