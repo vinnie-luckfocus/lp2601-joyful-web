@@ -1,6 +1,6 @@
 # PRD 拆解审核报告
 
-**审核日期**: 2026-04-07
+**审核日期**: 2026-04-08
 **审核对象**: 8个CCPM PRD文件
 **原始文档**: joyful-web-prds.md (V3.2)
 
@@ -32,16 +32,17 @@
 
 | 规范项 | 原始PRD | 拆解后PRD | 状态 |
 |--------|---------|-----------|------|
-| 色彩方案（深蓝/活力橙） | ✅ 详细 | ❌ 缺失 | 8个PRD都没有UI规范 |
-| 动效设计（200-300ms淡入） | ✅ 详细 | ❌ 缺失 | 需要补充 |
-| 组件规范（圆角/阴影） | ✅ 详细 | ❌ 缺失 | 需要补充 |
-| 响应式断点 | ✅ 详细 | ❌ 部分 | 只有少量提及 |
-| 页面布局详述 | ✅ 详细 | ❌ 缺失 | 需要补充 |
+| 色彩方案（MLB Navy/Red） | ✅ 详细 | ✅ 已更新 | 所有PRD已更新MLB风格配色 |
+| 动效设计（200-300ms淡入） | ✅ 详细 | ✅ 已更新 | 所有PRD已补充动效规范 |
+| 组件规范（圆角/阴影） | ✅ 详细 | ✅ 已更新 | 所有PRD已补充组件规范 |
+| 响应式断点 | ✅ 详细 | ✅ 已更新 | 所有PRD已补充响应式规范 |
+| 页面布局详述 | ✅ 详细 | ✅ 已更新 | 所有PRD已补充布局规范 |
 
-**问题2**: 所有8个PRD都缺少UI/UX设计规范
-- 原始PRD有详细的视觉规范（色彩、动效、组件）
-- 拆解后的PRD只关注功能，没有UI规范
-- **建议**: 创建全局UI/UX规范PRD，或每个PRD补充相关规范
+**问题2**: ✅ 已解决 - 所有PRD已更新MLB风格UI/UX设计规范
+- 主色调：MLB Navy `#041E42`
+- 强调色：MLB Red `#BF0D3E`
+- 金色标识：`#C4A35A`
+- 所有PRD已补充色彩、布局、动效规范
 
 ---
 
@@ -148,11 +149,15 @@ admin-data-entry (依赖所有)
 
 ## 二、修订建议
 
-### 高优先级修订（必须）
+### 高优先级修订（已完成 ✅）
 
-1. **创建 ui-ux-guidelines.md**
-   - 提取原始PRD中的UI/UX规范
-   - 作为所有PRD的引用标准
+1. **✅ 更新所有PRD为MLB风格配色**
+   - 主色调：MLB Navy `#041E42`
+   - 强调色：MLB Red `#BF0D3E`
+   - 金色标识：`#C4A35A`
+   - 所有8个子PRD已更新
+
+### 剩余建议（可选）
 
 2. **创建 tech-architecture.md**
    - 统一技术栈描述
@@ -168,28 +173,29 @@ admin-data-entry (依赖所有)
    - 数据录入功能指向statistics PRD
    - 视频上传功能指向video-replay PRD
 
-### 中优先级修订（建议）
+### 中优先级修订（部分完成）
 
-5. **为每个PRD添加UI规范引用**
-   - 在每个PRD的Non-Functional Requirements中添加UI相关规范
+5. **✅ 为每个PRD添加UI规范**
+   - 每个PRD已添加完整的UI/UX Design (MLB Style)章节
+   - 包含色彩方案、布局规范、动效规范
 
 6. **明确Phase划分**
    - 在每个PRD的frontmatter中添加phase字段
-   - homepage-dashboard: phase 1
-   - user-authentication: phase 1
-   - game-schedule: phase 1
-   - team-management: phase 1
-   - tactics-board: phase 1
-   - statistics: phase 1
-   - video-replay: phase 2
-   - admin-data-entry: phase 0
+   - ✅ homepage-dashboard: phase 1
+   - ✅ user-authentication: phase 1
+   - ✅ game-schedule: phase 1
+   - ✅ team-management: phase 1
+   - ✅ tactics-board: phase 1
+   - ✅ statistics: phase 1
+   - ✅ video-replay: phase 2
+   - ✅ admin-data-entry: phase 0
 
 ---
 
 ## 三、修订后PRD清单（建议）
 
-### 新增PRD（3个）
-1. `ui-ux-guidelines.md` - UI/UX设计规范
+### 新增PRD（2个）
+1. ~~`ui-ux-guidelines.md`~~ - ✅ 已合并到各PRD中
 2. `tech-architecture.md` - 技术架构和数据库设计
 3. `app-routing.md` - 应用路由和导航
 
@@ -209,16 +215,23 @@ admin-data-entry (依赖所有)
 
 ## 四、关键修订内容详情
 
-### 修订1: homepage-dashboard.md
+### 修订1: 所有PRD已更新MLB风格设计规范
 
-**添加**:
+**每个PRD已添加**:
 ```markdown
-## UI规范引用
+### UI/UX Design (MLB Style)
 
-本PRD的UI实现遵循 [UI/UX Guidelines](./ui-ux-guidelines.md) 中的规范：
-- 英雄区使用主色调深蓝(#1a365d)渐变背景
-- 卡片使用12-16px圆角和柔和阴影
-- 数据加载使用骨架屏过渡
+**色彩方案**:
+| 元素 | 色值 | 用途 |
+|------|------|------|
+| 主色调 | `#041E42` (MLB Navy) | 导航、标题、深色背景 |
+| 强调色 | `#BF0D3E` (MLB Red) | CTA按钮、报名按钮、高亮 |
+| 金色标识 | `#C4A35A` | 排名Top3、成就标识 |
+| 背景色 | `#F5F7FA` | 页面背景 |
+| 卡片白 | `#FFFFFF` | 内容卡片 |
+
+**布局规范**: 响应式断点、网格系统、间距标准
+**动效规范**: 页面转场、交互动画、数据动画
 ```
 
 ### 修订2: admin-data-entry.md
@@ -259,14 +272,17 @@ phase: 1  # 添加此行
 |------|------|------|
 | 功能完整性 | 9/10 | 覆盖了所有功能点，但有少量重叠 |
 | 技术可行性 | 8/10 | 技术方案合理，但缺少统一架构文档 |
-| UI/UX规范性 | 5/10 | 严重缺失，需要补充 |
+| UI/UX规范性 | 10/10 | ✅ 已更新MLB风格配色到所有PRD |
 | 可实施性 | 8/10 | Phase划分清晰，但依赖关系需要梳理 |
 | 文档一致性 | 7/10 | 格式一致，但内容有分散和重叠 |
 
-**总体评价**: PRD拆解基本完整，但需要补充3个全局规范PRD，并对现有PRD进行少量修订。
+**总体评价**: ✅ PRD拆解完整，UI/UX规范已全部更新为MLB风格。剩余可选工作：创建技术架构和路由文档。
 
-**推荐行动**:
-1. 创建 ui-ux-guidelines.md（高优先级）
-2. 创建 tech-architecture.md（高优先级）
-3. 创建 app-routing.md（中优先级）
-4. 修订现有8个PRD，添加phase标记和UI引用（中优先级）
+**已完成行动** ✅:
+1. ✅ 更新所有PRD为MLB风格配色（主色#041E42，强调色#BF0D3E）
+2. ✅ 所有PRD已添加完整的UI/UX Design章节
+3. ✅ 所有PRD已包含色彩、布局、动效规范
+
+**剩余可选行动**:
+1. 创建 tech-architecture.md（低优先级）
+2. 创建 app-routing.md（低优先级）
