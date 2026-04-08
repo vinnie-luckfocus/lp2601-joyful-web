@@ -1,23 +1,13 @@
-import { LayoutDashboard, Users, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Navigation } from '../Navigation';
+import { adminMenu } from '../../config/menu';
 
 export interface SidebarProps {
   collapsed?: boolean;
   onCollapse?: (collapsed: boolean) => void;
 }
 
-interface NavItem {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-}
-
 export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse }) => {
-  const navItems: NavItem[] = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', active: true },
-    { icon: <Users size={20} />, label: 'Users', active: false },
-    { icon: <Settings size={20} />, label: 'Settings', active: false },
-  ];
-
   return (
     <aside
       className={`fixed left-0 top-0 h-screen bg-mlb-navy transition-all duration-300 z-50 ${
@@ -34,22 +24,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse 
       </div>
 
       {/* Navigation */}
-      <nav className="mt-6 px-3">
-        {navItems.map((item, index) => (
-          <a
-            key={index}
-            href="#"
-            className={`flex items-center py-3 px-3 mb-1 rounded-lg transition-colors ${
-              item.active
-                ? 'border-l-4 border-mlb-red bg-white/10 text-white'
-                : 'text-gray-300 hover:bg-white/5 hover:text-white border-l-4 border-transparent'
-            } ${collapsed ? 'justify-center' : ''}`}
-          >
-            <span className="flex-shrink-0">{item.icon}</span>
-            {!collapsed && <span className="ml-3 text-sm font-medium">{item.label}</span>}
-          </a>
-        ))}
-      </nav>
+      <div className="mt-6 px-3">
+        <Navigation menuItems={adminMenu} collapsed={collapsed} />
+      </div>
 
       {/* Collapse Button */}
       <button
