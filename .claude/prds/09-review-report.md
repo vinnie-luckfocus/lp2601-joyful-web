@@ -12,19 +12,19 @@
 
 | 原始功能点 | 对应PRD | 覆盖状态 | 问题/备注 |
 |------------|---------|----------|-----------|
-| 首页看板（公开访问） | homepage-dashboard | ✅ 完整 | - |
-| 用户认证（分配账号） | user-authentication | ✅ 完整 | - |
-| 赛程展示+报名 | game-schedule | ✅ 完整 | - |
-| 球队展示（队徽/简介） | team-management | ✅ 完整 | - |
-| 战术板（棒次/布阵图） | tactics-board | ✅ 完整 | - |
-| 数据记录+统计 | statistics | ✅ 完整 | admin-data-entry也有数据录入功能，有重叠 |
-| 视频回放 | video-replay | ✅ 完整 | - |
-| 管理后台 | admin-data-entry | ⚠️ 部分 | 包含了数据录入和视频上传，与其他PRD有交叉 |
+| 首页看板（公开访问） | 02-homepage-dashboard | ✅ 完整 | - |
+| 用户认证（分配账号） | 03-user-authentication | ✅ 完整 | - |
+| 赛程展示+报名 | 04-game-schedule | ✅ 完整 | - |
+| 球队展示（队徽/简介） | 05-team-management | ✅ 完整 | - |
+| 战术板（棒次/布阵图） | 06-tactics-board | ✅ 完整 | - |
+| 数据记录+统计 | 07-statistics | ✅ 完整 | 01-admin-data-entry也有数据录入功能，有重叠 |
+| 视频回放 | 08-video-replay | ✅ 完整 | - |
+| 管理后台 | 01-admin-data-entry | ⚠️ 部分 | 包含了数据录入和视频上传，与其他PRD有交叉 |
 
-**问题1**: admin-data-entry与statistics、video-replay、team-management存在功能重叠
+**问题1**: 01-admin-data-entry与07-statistics、08-video-replay、05-team-management存在功能重叠
 - admin-data-entry包含了数据录入、视频上传、球队管理
 - 但这些功能在各自的PRD中也有详细描述
-- **建议**: 明确admin-data-entry是"管理后台的入口和框架"，具体功能实现依赖其他PRD
+- **建议**: 明确01-admin-data-entry是"管理后台的入口和框架"，具体功能实现依赖其他PRD
 
 ---
 
@@ -87,42 +87,42 @@
 ```
 依赖关系图：
 
-homepage-dashboard (公开)
-    ├── game-schedule (部分API)
-    ├── team-management (部分API)
-    └── statistics (排行榜API)
+02-homepage-dashboard (公开)
+    ├── 04-game-schedule (部分API)
+    ├── 05-team-management (部分API)
+    └── 07-statistics (排行榜API)
 
-user-authentication
+03-user-authentication
     └── 被所有其他PRD依赖
 
-game-schedule
-    ├── 依赖 user-authentication
-    └── 依赖 admin-data-entry (赛程创建)
+04-game-schedule
+    ├── 依赖 03-user-authentication
+    └── 依赖 01-admin-data-entry (赛程创建)
 
-team-management
-    ├── 依赖 user-authentication
-    └── 依赖 admin-data-entry (球队录入)
+05-team-management
+    ├── 依赖 03-user-authentication
+    └── 依赖 01-admin-data-entry (球队录入)
 
-tactics-board
-    ├── 依赖 user-authentication
-    ├── 依赖 game-schedule
-    └── 依赖 admin-data-entry (战术录入)
+06-tactics-board
+    ├── 依赖 03-user-authentication
+    ├── 依赖 04-game-schedule
+    └── 依赖 01-admin-data-entry (战术录入)
 
-statistics
-    ├── 依赖 user-authentication
-    ├── 依赖 game-schedule
-    └── 依赖 admin-data-entry (数据录入)
+07-statistics
+    ├── 依赖 03-user-authentication
+    ├── 依赖 04-game-schedule
+    └── 依赖 01-admin-data-entry (数据录入)
 
-video-replay
-    ├── 依赖 user-authentication
-    ├── 依赖 game-schedule
-    └── 依赖 admin-data-entry (视频上传)
+08-video-replay
+    ├── 依赖 03-user-authentication
+    ├── 依赖 04-game-schedule
+    └── 依赖 01-admin-data-entry (视频上传)
 
-admin-data-entry (依赖所有)
+01-admin-data-entry (依赖所有)
 ```
 
 **问题5**: 依赖关系复杂，启动顺序不明确
-- **建议**: 明确Phase 0只依赖admin-data-entry，其他PRD都是Phase 1+2
+- **建议**: 明确Phase 0只依赖01-admin-data-entry，其他PRD都是Phase 1+2
 
 ---
 
@@ -143,7 +143,7 @@ admin-data-entry (依赖所有)
 | 视频回放 | ❌ | ✅ | Phase 2功能，不在MVP |
 
 **问题6**: 视频回放被放在MVP之外，但PRD已经写好
-- **建议**: 明确标记video-replay为Phase 2
+- **建议**: 明确标记08-video-replay为Phase 2
 
 ---
 
@@ -168,10 +168,10 @@ admin-data-entry (依赖所有)
    - 统一定义所有页面路由
    - 定义导航结构
 
-4. **修订admin-data-entry.md**
+4. **修订01-admin-data-entry.md**
    - 明确为"管理后台框架"
-   - 数据录入功能指向statistics PRD
-   - 视频上传功能指向video-replay PRD
+   - 数据录入功能指向07-statistics PRD
+   - 视频上传功能指向08-video-replay PRD
 
 ### 中优先级修订（部分完成）
 
@@ -181,14 +181,14 @@ admin-data-entry (依赖所有)
 
 6. **明确Phase划分**
    - 在每个PRD的frontmatter中添加phase字段
-   - ✅ homepage-dashboard: phase 1
-   - ✅ user-authentication: phase 1
-   - ✅ game-schedule: phase 1
-   - ✅ team-management: phase 1
-   - ✅ tactics-board: phase 1
-   - ✅ statistics: phase 1
-   - ✅ video-replay: phase 2
-   - ✅ admin-data-entry: phase 0
+   - ✅ 02-homepage-dashboard: phase 1
+   - ✅ 03-user-authentication: phase 1
+   - ✅ 04-game-schedule: phase 1
+   - ✅ 05-team-management: phase 1
+   - ✅ 06-tactics-board: phase 1
+   - ✅ 07-statistics: phase 1
+   - ✅ 08-video-replay: phase 2
+   - ✅ 01-admin-data-entry: phase 0
 
 ---
 
@@ -199,17 +199,20 @@ admin-data-entry (依赖所有)
 2. `tech-architecture.md` - 技术架构和数据库设计
 3. `app-routing.md` - 应用路由和导航
 
-### 现有PRD（8个）
-1. `homepage-dashboard.md` - Phase 1
-2. `user-authentication.md` - Phase 1
-3. `game-schedule.md` - Phase 1
-4. `team-management.md` - Phase 1
-5. `tactics-board.md` - Phase 1
-6. `statistics.md` - Phase 1
-7. `video-replay.md` - Phase 2
-8. `admin-data-entry.md` - Phase 0（基础依赖）
+### 现有PRD（9个，已编号）
+| 编号 | PRD | Phase | 说明 |
+|:---:|:---|:---:|:---|
+| 01 | `01-admin-data-entry.md` | 0 | 管理后台框架（基础依赖）|
+| 02 | `02-homepage-dashboard.md` | 1 | 首页看板 |
+| 03 | `03-user-authentication.md` | 1 | 用户认证 |
+| 04 | `04-game-schedule.md` | 1 | 赛程管理 |
+| 05 | `05-team-management.md` | 1 | 球队展示 |
+| 06 | `06-tactics-board.md` | 1 | 战术板 |
+| 07 | `07-statistics.md` | 1 | 数据统计 |
+| 08 | `08-video-replay.md` | 2 | 视频回放 |
+| 09 | `09-review-report.md` | - | 审核报告 |
 
-**总计**: 11个PRD
+**总计**: 9个PRD文件
 
 ---
 
@@ -234,7 +237,7 @@ admin-data-entry (依赖所有)
 **动效规范**: 页面转场、交互动画、数据动画
 ```
 
-### 修订2: admin-data-entry.md
+### 修订2: 01-admin-data-entry.md
 
 **修改描述**:
 从"管理后台数据录入功能"改为"管理后台框架和入口"
@@ -244,9 +247,9 @@ admin-data-entry (依赖所有)
 ## Out of Scope
 
 注意：以下功能的具体实现详见其他PRD
-- 数据录入详细流程（见 statistics PRD）
-- 视频上传播放（见 video-replay PRD）
-- 球队展示功能（见 team-management PRD）
+- 数据录入详细流程（见 07-statistics PRD）
+- 视频上传播放（见 08-video-replay PRD）
+- 球队展示功能（见 05-team-management PRD）
 
 本PRD只提供这些功能的"管理后台入口"。
 ```
