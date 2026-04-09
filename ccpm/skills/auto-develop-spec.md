@@ -172,18 +172,77 @@ ccpm/epics/
 
 ## 4. Skill 接口设计
 
+本 Skill 提供两个命令入口：从总需求开始的全流程命令 `/auto-dev`，以及针对已有拆解结果进行续接的命令 `/auto-resume`。
+
+### 4.1 `/auto-dev` 命令
+
+**用途**：接收总需求，执行 PRD 拆解 → Epic 分解 → 自动开发 → 验证交付的完整流程。
+
 ```markdown
-/auto-dev <requirement>
+/auto-dev <requirement> [options]
 ```
 
-### 参数
-- `requirement`: 总需求描述或总需求文件路径。可以是自然语言文本，也可以是一份 Markdown 文件（如 `requirements/project-x.md`）。
+#### 必选参数
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `requirement` | `string` | 总需求描述文本，或总需求 Markdown 文件的相对路径（如 `requirements/project-x.md`）。如果是文本，长度不限；如果是文件路径，文件必须存在且可读取。 |
 
-### 可选参数
-- `--max-audit-rounds`: 审核最大迭代次数（默认 2）。
-- `--max-fix-rounds`: 测试失败后自动修复最大迭代次数（默认 3）。
-- `--auto-merge`: 开启全自动模式，Epic 合并前不经过人工确认（默认关闭，每次合并前会暂停等待确认）。
-- `--dry-run`: 只生成 PRD 和 Epic 拆解计划，不实际执行开发、同步和合并。
+#### 可选参数
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--max-audit-rounds` | `number` | `2` | 自动审核不通过时，自动修正并重新审核的最大迭代次数。超过该次数仍不通过则停止流程。 |
+| `--max-fix-rounds` | `number` | `3` | Epic 级测试失败后，自动分析并修复代码的最大迭代次数。超过该次数仍失败则停止流程。 |
+| `--auto-merge` | `boolean` | `false` | 若为 `true`，Epic 开发完成后直接执行 `/pm:epic-merge` 合并到 `main`，不经过人工确认。 **默认 false 为保障安全，建议仅在 CI/自动化场景下开启。** |
+| `--skip-epic` | `boolean` | `false` | 若当前 Epic 因合并冲突或测试无法通过而阻塞，传入此参数可**强制跳过**该 Epic，继续处理下一个。跳过的 Epic 会被记录到交付报告的 "跳过的 Epic" 列表中。 |
+| `--dry-run` | `boolean` | `false` | 只生成 PRD 和 Epic 拆解计划，不执行实际的开发、同步、合并和验证。 |
+
+#### 执行状态返回
+- **成功**：所有 PRD/Epic 开发、验证、合并完成，最终输出 `ccpm/prds/99-<project>-summary.md`。
+- **失败**：任一 Pre-flight 检查未通过，或审核/开发/测试/合并阶段遇到不可恢复错误，Skill 立即退出并返回错误详情。
+- **中断**：Skill 运行过程中若被外部终止，下次可通过 `/auto-resume` 从中断点继续（依赖 `ccpm/auto-dev-state.json`）。
+
+---
+
+### 4.2 `/auto-resume` 命令
+
+**用途**：扫描当前项目中已拆解但未完成的 PRD/Epic，跳过已完成的，继续执行剩余的开发与验证流程。
+
+```markdown
+/auto-resume [options]
+```
+
+#### 必选参数
+无。
+
+#### 可选参数
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--from` | `string` | 自动检测 | 指定从某个 PRD/Epic 开始继续开发（如 `02-homepage-dashboard`）。若未指定，Skill 自动扫描并定位到第一个未完成的 Epic。 |
+| `--max-fix-rounds` | `number` | `3` | 同 `/auto-dev`，测试失败后自动修复的最大迭代次数。 |
+| `--auto-merge` | `boolean` | `false` | 同 `/auto-dev`，开启后 Epic 合并前不暂停确认。 |
+| `--skip-epic` | `boolean` | `false` | 同 `/auto-dev`，允许强制跳过当前阻塞的 Epic。 |
+| `--dry-run` | `boolean` | `false` | 只扫描并输出剩余工作计划（PRD/Epic 清单），不执行实际开发。 |
+
+#### 执行状态返回
+- **成功**：所有剩余 Epic 开发、验证、合并完成，并更新 `ccpm/prds/99-<project>-summary.md`。
+- **失败**：状态扫描失败，或开发与验证阶段遇到不可恢复错误，Skill 立即退出。
+- **无可恢复内容**：若所有 PRD/Epic 均已完成，Skill 直接输出提示并正常退出。
+
+---
+
+### 4.3 参数共享说明
+以下参数在 `/auto-dev` 和 `/auto-resume` 中语义完全一致：
+- `--max-fix-rounds`
+- `--auto-merge`
+- `--skip-epic`
+- `--dry-run`
+
+### 4.4 运行时文件约定
+| 文件路径 | 用途 |
+|----------|------|
+| `ccpm/auto-dev-state.json` | 运行时状态跟踪（当前 Phase、PRD、Epic、retry 计数、`last_error`）。 |
+| `ccpm/logs/auto-dev-YYYY-MM-DD-HHMMSS.log` | 当前 Skill 实例的完整执行日志。 |
+| `ccpm/logs/auto-dev-YYYY-MM-DD-HHMMSS-fail.md` | 当流程因错误停止时生成的失败报告（仅错误时产生）。 |
 
 ---
 
@@ -240,17 +299,8 @@ ccpm/epics/
 - 部分 PRD 对应的 Epic 已经开发并合并到 `main`。
 - 还有一部分 PRD/Epic 处于 `backlog`、`open` 或 `in-progress` 状态，需要继续完成。
 
-### 6.2 Skill 接口设计
-
-```markdown
-/auto-resume
-```
-
-### 可选参数
-- `--from <NN-feature-name>`: 指定从某个 PRD/Epic 开始继续（默认自动检测第一个未完成的）。
-- `--max-fix-rounds`: 测试失败后自动修复最大迭代次数（默认 3）。
-- `--auto-merge`: 开启全自动模式，Epic 合并前不经过人工确认（默认关闭）。
-- `--dry-run`: 只扫描并输出剩余工作计划，不实际执行开发。
+### 6.2 使用接口
+`/auto-resume` 的具体参数定义见 [第 4.2 节](#42-auto-resume-命令)。本节只描述其内部工作流程。
 
 ### 6.3 工作流程
 
