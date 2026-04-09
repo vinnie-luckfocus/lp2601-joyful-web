@@ -1,9 +1,9 @@
 {
   "status": "running",
   "phase": "2",
-  "current_epic": "05-team-management",
-  "resume_epic": "05-team-management",
-  "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication", "04-game-schedule"],
+  "current_epic": "06-tactics-board",
+  "resume_epic": "06-tactics-board",
+  "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication", "04-game-schedule", "05-team-management"],
   "skipped_epics": [],
   "needs_review": ["04-game-schedule"],
   "deferred_tasks": [],
