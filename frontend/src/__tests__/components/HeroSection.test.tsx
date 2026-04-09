@@ -18,9 +18,9 @@ describe('HeroSection', () => {
     render(<HeroSection />);
 
     expect(screen.getByTestId('hero-section')).toBeInTheDocument();
-    expect(screen.getByTestId('hero-title')).toHaveTextContent('MLB 数据平台');
+    expect(screen.getByTestId('hero-title')).toHaveTextContent('举父棒球联赛');
     expect(screen.getByTestId('hero-slogan')).toHaveTextContent(
-      '专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息'
+      '专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息'
     );
     expect(screen.getByTestId('hero-login-button')).toHaveTextContent('登录');
   });

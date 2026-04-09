@@ -55,21 +55,17 @@ export const HomePage: React.FC = () => {
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'SportsOrganization',
-    name: 'MLB 数据平台',
-    description: '专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息',
-    url: 'https://mlb-data.example.com',
+    name: '举父棒球联赛',
+    description: '专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息',
+    url: 'https://joyful-baseball.example.com',
     sport: 'Baseball',
-    memberOf: {
-      '@type': 'SportsOrganization',
-      name: 'Major League Baseball',
-    },
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <SEO
-        title="MLB 数据平台 - 专业的棒球数据分析平台"
-        description="专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息。查看球队排名、球员数据、赛程安排和历史战绩。"
+        title="举父棒球联赛 - 专业的棒球联赛数据平台"
+        description="专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息。查看球队排名、球员数据、赛程安排和历史战绩。"
         structuredData={structuredData}
       />
 
@@ -78,8 +74,8 @@ export const HomePage: React.FC = () => {
       <main className="flex-1" role="main">
         {/* Hero Section */}
         <HeroSection
-          leagueName="MLB 数据平台"
-          slogan="专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息"
+          leagueName="举父棒球联赛"
+          slogan="专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息"
           onLoginClick={handleLoginClick}
         />
 
@@ -91,7 +87,7 @@ export const HomePage: React.FC = () => {
                 功能特色
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">
-                全面的数据分析工具，助您深入了解 MLB 赛事
+                全面的数据分析工具，助您深入了解联赛赛事
               </p>
             </div>
 

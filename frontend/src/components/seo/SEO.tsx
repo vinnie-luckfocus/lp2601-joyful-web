@@ -17,15 +17,15 @@ export interface SEOProps {
 }
 
 const DEFAULT_SEO = {
-  title: 'MLB 数据平台 - 专业的棒球数据分析平台',
-  description: '专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息。查看球队排名、球员数据、赛程安排和历史战绩。',
-  keywords: 'MLB, 棒球, 数据分析, 球队排名, 球员统计, 赛程, 美国职棒大联盟',
+  title: '举父棒球联赛 - 专业的棒球联赛数据平台',
+  description: '专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息。查看球队排名、球员数据、赛程安排和历史战绩。',
+  keywords: '棒球, 数据分析, 球队排名, 球员统计, 赛程, 业余棒球, 举父棒球',
   image: '/og-image.png',
-  url: 'https://mlb-data.example.com',
-  siteName: 'MLB 数据平台',
+  url: 'https://joyful-baseball.example.com',
+  siteName: '举父棒球联赛',
   locale: 'zh_CN',
   twitterCard: 'summary_large_image' as const,
-  twitterHandle: '@mlbdata',
+  twitterHandle: '@joyfulbaseball',
 };
 
 export const SEO: React.FC<SEOProps> = ({

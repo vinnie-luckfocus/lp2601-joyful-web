@@ -5,13 +5,13 @@ import { Footer } from '../../components/layout/Footer';
 describe('Footer', () => {
   it('renders with logo and brand name', () => {
     render(<Footer />);
-    expect(screen.getByText('MLB')).toBeInTheDocument();
-    expect(screen.getByText('Joyful Web')).toBeInTheDocument();
+    expect(screen.getByText('JF')).toBeInTheDocument();
+    expect(screen.getByText('举父棒球联赛')).toBeInTheDocument();
   });
 
   it('renders description text', () => {
     render(<Footer />);
-    expect(screen.getByText(/专业的 MLB 数据平台/)).toBeInTheDocument();
+    expect(screen.getByText(/专业的棒球联赛数据平台/)).toBeInTheDocument();
   });
 
   it('renders footer link sections', () => {

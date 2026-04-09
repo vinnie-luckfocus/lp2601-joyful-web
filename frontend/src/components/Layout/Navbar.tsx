@@ -31,9 +31,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="/" className="flex items-center gap-2" aria-label="MLB 数据平台 - 返回首页">
+            <a href="/" className="flex items-center gap-2" aria-label="举父棒球联赛 - 返回首页">
               <div className="w-8 h-8 bg-mlb-navy rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MLB</span>
+                <span className="text-white font-bold text-sm">JF</span>
               </div>
               <span className="text-xl font-bold text-mlb-navy hidden sm:block">
                 Joyful Web

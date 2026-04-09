@@ -10,8 +10,8 @@ export interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
-  leagueName = 'MLB 数据平台',
-  slogan = '专业的棒球数据分析平台，为您提供实时、准确的 MLB 赛事数据和统计信息',
+  leagueName = '举父棒球联赛',
+  slogan = '专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计信息',
   onLoginClick,
   backgroundImage,
 }) => {
@@ -91,7 +91,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             size="lg"
             className="bg-mlb-red hover:bg-mlb-red-dark text-white font-bold px-8 py-3"
             data-testid="hero-login-button"
-            aria-label="登录到 MLB 数据平台"
+            aria-label="登录到举父棒球联赛"
           >
             登录
           </Button>

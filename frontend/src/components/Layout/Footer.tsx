@@ -48,12 +48,12 @@ export const Footer: React.FC<FooterProps> = ({ className = '' }) => {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center" aria-hidden="true">
-                <span className="text-mlb-navy font-bold text-sm">MLB</span>
+                <span className="text-mlb-navy font-bold text-sm">JF</span>
               </div>
-              <span className="text-xl font-bold">Joyful Web</span>
+              <span className="text-xl font-bold">举父棒球联赛</span>
             </div>
             <p className="text-gray-300 text-sm mb-6 max-w-xs">
-              专业的 MLB 数据平台，为您提供实时、准确的棒球赛事数据和统计分析。
+              专业的棒球联赛数据平台，为您提供实时、准确的赛事数据和统计分析。
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (

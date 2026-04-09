@@ -5,14 +5,14 @@ import { HomePage } from '../../pages/HomePage';
 describe('HomePage', () => {
   it('renders with navbar', () => {
     render(<HomePage />);
-    // Use getAllByText since there are multiple 'MLB' and 'Joyful Web' elements (navbar and footer)
-    expect(screen.getAllByText('MLB').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Joyful Web').length).toBeGreaterThan(0);
+    // Use getAllByText since there are multiple 'JF' and '举父棒球联赛' elements (navbar and footer)
+    expect(screen.getAllByText('JF').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('举父棒球联赛').length).toBeGreaterThan(0);
   });
 
   it('renders hero section', () => {
     render(<HomePage />);
-    expect(screen.getByText('MLB 数据平台')).toBeInTheDocument();
+    expect(screen.getByText('举父棒球联赛')).toBeInTheDocument();
     expect(screen.getByText(/专业的棒球数据分析平台/)).toBeInTheDocument();
   });
 

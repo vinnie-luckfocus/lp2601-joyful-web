@@ -5,8 +5,8 @@ import { Navbar } from '../../components/layout/Navbar';
 describe('Navbar', () => {
   it('renders with logo', () => {
     render(<Navbar />);
-    expect(screen.getByText('MLB')).toBeInTheDocument();
-    expect(screen.getByText('Joyful Web')).toBeInTheDocument();
+    expect(screen.getByText('JF')).toBeInTheDocument();
+    expect(screen.getByText('举父棒球联赛')).toBeInTheDocument();
   });
 
   it('renders navigation links', () => {
