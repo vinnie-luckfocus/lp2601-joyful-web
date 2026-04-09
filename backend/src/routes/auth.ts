@@ -32,6 +32,7 @@ interface UserRow {
   jersey_number: number | null;
   position: string | null;
   password_hash: string;
+  is_first_login: boolean;
 }
 
 // POST /api/auth/login
@@ -47,7 +48,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
 
   try {
     const result = await pool.query<UserRow>(
-      'SELECT id, username, name, role, team_id, jersey_number, position, password_hash FROM users WHERE username = $1',
+      'SELECT id, username, name, role, team_id, jersey_number, position, password_hash, is_first_login FROM users WHERE username = $1',
       [username]
     );
 
@@ -71,7 +72,9 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       user: {
         id: user.id,
         name: user.name,
+        team_id: user.team_id,
         role: user.role,
+        is_first_login: user.is_first_login,
       },
     });
   } catch (error) {
