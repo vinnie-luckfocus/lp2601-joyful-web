@@ -64,4 +64,33 @@ describe('Express App', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('Game Schedule Routes Smoke Tests', () => {
+    it('GET /api/public/games should be reachable', async () => {
+      const response = await request(app).get('/api/public/games');
+      expect(response.status).not.toBe(404);
+    });
+
+    it('GET /api/games should require auth (not 404)', async () => {
+      const response = await request(app).get('/api/games');
+      expect(response.status).toBe(401);
+    });
+
+    it('GET /api/games/:id should require auth (not 404)', async () => {
+      const response = await request(app).get('/api/games/1');
+      expect(response.status).toBe(401);
+    });
+
+    it('POST /api/games/:id/attend should require auth (not 404)', async () => {
+      const response = await request(app)
+        .post('/api/games/1/attend')
+        .send({ status: 'confirmed' });
+      expect(response.status).toBe(401);
+    });
+
+    it('GET /api/games/:id/attendance should require auth (not 404)', async () => {
+      const response = await request(app).get('/api/games/1/attendance');
+      expect(response.status).toBe(401);
+    });
+  });
 });
