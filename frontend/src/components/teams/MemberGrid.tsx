@@ -74,7 +74,7 @@ export const MemberGrid: React.FC<MemberGridProps> = ({ teamId, captainId }) => 
                     </div>
                   )}
                   <span
-                    className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white"
+                    className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white animate-pulse-dot"
                     style={{ backgroundColor: '#2D8659' }}
                   />
                 </div>
