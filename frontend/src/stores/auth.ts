@@ -68,8 +68,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await api.post('/auth/change-password', { old_password, new_password });
-      localStorage.removeItem('token');
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set((state) => ({
+        user: state.user ? { ...state.user, is_first_login: false } : null,
+        isLoading: false,
+      }));
     } catch (error) {
       const axiosError = error as { response?: { status?: number; data?: { error?: string } } };
       const message = axiosError.response?.data?.error || 'Password change failed';

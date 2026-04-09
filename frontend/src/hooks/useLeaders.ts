@@ -49,7 +49,7 @@ export const useLeaders = (category: LeaderCategory, limit: number = 10): UseLea
 
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/public/leaders?category=${category}&limit=${limit}`
+          `${API_BASE_URL}/public/leaders?category=${category}&limit=${limit}`
         );
 
         if (!response.ok) {

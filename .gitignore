@@ -57,3 +57,7 @@ tmp/
 .claude/epics/*/updates/
 .claude/epics/*-analysis.md
 .claude/epics/*/execution-status.md
+
+# Test artifacts
+test-results/
+playwright-report/

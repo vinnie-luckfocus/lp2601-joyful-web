@@ -185,7 +185,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handlePasswordChangedAcknowledge = () => {
-    logout();
     setView('login');
     onClose();
   };

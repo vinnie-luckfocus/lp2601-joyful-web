@@ -36,22 +36,23 @@ export interface WinRateBarProps {
 }
 
 export const WinRateBar: React.FC<WinRateBarProps> = ({ winRate }) => {
+  const rate = Number(winRate);
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm font-medium text-gray-900 w-12" aria-label={`胜率 ${winRate.toFixed(1)}%`}>
-        {winRate.toFixed(1)}%
+      <span className="text-sm font-medium text-gray-900 w-12" aria-label={`胜率 ${rate.toFixed(1)}%`}>
+        {rate.toFixed(1)}%
       </span>
       <div
         className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]"
         role="progressbar"
-        aria-valuenow={winRate}
+        aria-valuenow={rate}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`胜率进度 ${winRate.toFixed(0)}%`}
+        aria-label={`胜率进度 ${rate.toFixed(0)}%`}
       >
         <div
           className="h-full bg-[#041E42] rounded-full transition-all duration-300"
-          style={{ width: `${winRate}%` }}
+          style={{ width: `${rate}%` }}
           data-testid="win-rate-bar"
         />
       </div>
@@ -69,7 +70,7 @@ export const TableRow: React.FC<TableRowProps> = ({ standing }) => {
       className="hover:bg-gray-50 transition-colors"
       data-testid={`standing-row-${standing.id}`}
       tabIndex={0}
-      aria-label={`${standing.name}, 排名 ${standing.rank}, 胜 ${standing.wins} 负 ${standing.losses}, 胜率 ${standing.win_percentage.toFixed(1)}%`}
+      aria-label={`${standing.name}, 排名 ${standing.rank}, 胜 ${standing.wins} 负 ${standing.losses}, 胜率 ${Number(standing.win_percentage).toFixed(1)}%`}
     >
       <td className="px-4 py-4 whitespace-nowrap">
         <RankBadge rank={standing.rank} />
