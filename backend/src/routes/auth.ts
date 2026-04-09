@@ -88,7 +88,6 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -144,7 +143,6 @@ router.post('/change-password', verifyToken, async (req: Request, res: Response)
 
     res.json({ success: true });
   } catch (error) {
-    console.error('Change password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -179,7 +177,6 @@ router.get('/me', verifyToken, async (req: Request, res: Response): Promise<void
       position: user.position,
     });
   } catch (error) {
-    console.error('Get user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
