@@ -1,9 +1,9 @@
 {
   "status": "running",
   "phase": "2",
-  "current_epic": "06-tactics-board",
-  "resume_epic": "06-tactics-board",
-  "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication", "04-game-schedule", "05-team-management"],
+  "current_epic": "07-statistics",
+  "resume_epic": "07-statistics",
+  "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication", "04-game-schedule", "05-team-management", "06-tactics-board"],
   "skipped_epics": [],
   "needs_review": ["04-game-schedule"],
   "deferred_tasks": [],
@@ -14,5 +14,5 @@
     "dry_run": false
   },
   "started_at": "2026-04-09T12:35:47Z",
-  "updated_at": "2026-04-09T22:16:54Z"
+  "updated_at": "2026-04-10T07:22:00Z"
 }
