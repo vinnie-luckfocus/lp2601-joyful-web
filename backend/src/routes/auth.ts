@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import pool from '../config/database';
 import { generateToken, verifyToken } from '../middleware/auth';
-import { comparePassword } from '../utils/password';
+import { comparePassword, hashPassword } from '../utils/password';
 
 const router = Router();
 
@@ -17,10 +17,20 @@ const loginLimiter = rateLimit({
   skipSuccessfulRequests: true, // Don't count successful logins
 });
 
-// Input validation schema
+// Input validation schemas
 const loginSchema = z.object({
   username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_]+$/),
   password: z.string().min(6).max(128),
+});
+
+const changePasswordSchema = z.object({
+  old_password: z.string(),
+  new_password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters' })
+    .refine((val) => new TextEncoder().encode(val).length <= 72, {
+      message: 'Password must not exceed 72 bytes',
+    }),
 });
 
 interface UserRow {
@@ -88,6 +98,55 @@ router.post('/logout', verifyToken, (_req: Request, res: Response): void => {
   // Token invalidation happens client-side
   // Server-side token blacklisting could be implemented here if needed
   res.json({ success: true });
+});
+
+// POST /api/auth/change-password
+router.post('/change-password', verifyToken, async (req: Request, res: Response): Promise<void> => {
+  const parseResult = changePasswordSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    const messages = parseResult.error.errors.map((e) => e.message).join(', ');
+    res.status(400).json({ error: messages || 'Invalid input format' });
+    return;
+  }
+
+  const { old_password, new_password } = parseResult.data;
+
+  if (!req.user) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const userResult = await pool.query<{ id: number; password_hash: string }>(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const user = userResult.rows[0];
+    const isPasswordValid = await comparePassword(old_password, user.password_hash);
+
+    if (!isPasswordValid) {
+      res.status(401).json({ error: 'Invalid current password' });
+      return;
+    }
+
+    const newPasswordHash = await hashPassword(new_password);
+
+    await pool.query(
+      'UPDATE users SET password_hash = $1, is_first_login = false WHERE id = $2',
+      [newPasswordHash, user.id]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // GET /api/auth/me

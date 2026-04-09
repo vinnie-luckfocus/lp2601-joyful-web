@@ -152,6 +152,91 @@ describe('Auth Routes', () => {
     });
   });
 
+  describe('POST /api/auth/change-password', () => {
+    it('should change password with valid old password', async () => {
+      const token = generateToken('1', 'admin');
+
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({
+          rows: [{ id: 1, password_hash: mockUser.password_hash }],
+        })
+        .mockResolvedValueOnce({
+          rows: [],
+        });
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: 'newsecurepass',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should reject invalid old password', async () => {
+      const token = generateToken('1', 'admin');
+
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rows: [{ id: 1, password_hash: mockUser.password_hash }],
+      });
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'wrongpassword',
+          new_password: 'newsecurepass',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Invalid current password');
+    });
+
+    it('should reject short new password', async () => {
+      const token = generateToken('1', 'admin');
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: 'short',
+        });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject new password exceeding 72 bytes', async () => {
+      const token = generateToken('1', 'admin');
+
+      const longPassword = 'a'.repeat(80);
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: longPassword,
+        });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject request without token', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .send({
+          old_password: 'testpass123',
+          new_password: 'newsecurepass',
+        });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
   describe('POST /api/auth/logout', () => {
     it('should accept logout request with valid token', async () => {
       const token = generateToken('1', 'admin');
