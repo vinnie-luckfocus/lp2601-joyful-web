@@ -5,7 +5,7 @@ created: 2026-04-09T09:09:32Z
 progress: 0%
 prd: .claude/prds/04-game-schedule.md
 github: [Will be updated when synced to GitHub]
-updated: 2026-04-09T09:30:00Z
+updated: 2026-04-09T09:41:06Z
 ---
 
 # Epic: Game Schedule
@@ -97,3 +97,21 @@ Build a game schedule management system that displays all season games publicly 
 - **Timeline:** 5–7 days
 - **Critical path:** Database schema → protected API (games + attendance) → hooks and pages → E2E tests
 - **Resource needs:** 1 full-stack developer; no new infrastructure required.
+
+## Tasks Created
+
+- [ ] 001.md - Create games and game_attendance tables with seed data (parallel: true)
+- [ ] 002.md - Extend public API for full schedule (parallel: true)
+- [ ] 003.md - Implement protected game list and detail endpoints (parallel: true)
+- [ ] 004.md - Implement attendance API with cutoff and concurrency safety (parallel: true)
+- [ ] 005.md - Register new backend routes in app router (parallel: true)
+- [ ] 006.md - Build frontend hooks and GameSchedulePage (parallel: true)
+- [ ] 007.md - Build GameDetailPage with attendance sections and animations (parallel: true)
+- [ ] 008.md - Refactor GameCard and build ScheduleGameCard (parallel: false)
+- [ ] 009.md - Write frontend unit and component tests (parallel: true)
+- [ ] 010.md - Write E2E tests for critical schedule flows (parallel: true)
+
+Total tasks: 10
+Parallel tasks: 9
+Sequential tasks: 1
+Estimated total effort: ~41 hours
