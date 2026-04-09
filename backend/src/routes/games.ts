@@ -4,13 +4,34 @@
  */
 
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { verifyToken } from '../middleware/auth';
-import { getGames, getGameById } from '../services/games';
+import { getGames, getGameById, updateAttendance, getAttendance } from '../services/games';
 
 const router = Router();
 
 const gameIdSchema = z.string().regex(/^\d+$/, 'gameId must be a positive integer').transform((val) => parseInt(val, 10)).refine((val) => val > 0, 'gameId must be a positive integer');
+
+const attendBodySchema = z.object({
+  status: z.enum(['confirmed', 'declined']),
+});
+
+const attendRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => req.user?.userId || req.ip || 'anonymous',
+  handler: (req: Request, res: Response) => {
+    res.status(429).json({
+      success: false,
+      data: null,
+      error: 'Too many requests, please try again later',
+      meta: {},
+    });
+  },
+});
 
 /**
  * GET /api/games
@@ -98,6 +119,126 @@ router.get(
       res.json({
         success: true,
         data: game,
+        error: null,
+        meta: {},
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Internal server error',
+        meta: {},
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/games/:id/attend
+ * Update attendance status with cutoff enforcement and rate limiting
+ */
+router.post(
+  '/:id/attend',
+  verifyToken,
+  attendRateLimit,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          data: null,
+          error: 'Unauthorized',
+          meta: {},
+        });
+        return;
+      }
+
+      const parseId = gameIdSchema.safeParse(req.params.id);
+      if (!parseId.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid gameId format',
+          meta: {},
+        });
+        return;
+      }
+
+      const parseBody = attendBodySchema.safeParse(req.body);
+      if (!parseBody.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid status value',
+          meta: {},
+        });
+        return;
+      }
+
+      await updateAttendance(parseId.data, req.user.userId, parseBody.data.status);
+
+      res.json({
+        success: true,
+        data: { gameId: parseId.data, status: parseBody.data.status },
+        error: null,
+        meta: {},
+      });
+    } catch (error) {
+      const err = error as Error & { code?: string };
+      if (err.code === 'CUTOFF_PASSED' || err.message.includes('within 2 hours')) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Signup is closed within 2 hours of game start',
+          meta: {},
+        });
+        return;
+      }
+      res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Internal server error',
+        meta: {},
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/games/:id/attendance
+ * Get attendance lists for a game
+ */
+router.get(
+  '/:id/attendance',
+  verifyToken,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          data: null,
+          error: 'Unauthorized',
+          meta: {},
+        });
+        return;
+      }
+
+      const parseId = gameIdSchema.safeParse(req.params.id);
+      if (!parseId.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid gameId format',
+          meta: {},
+        });
+        return;
+      }
+
+      const attendance = await getAttendance(parseId.data);
+
+      res.json({
+        success: true,
+        data: attendance,
         error: null,
         meta: {},
       });

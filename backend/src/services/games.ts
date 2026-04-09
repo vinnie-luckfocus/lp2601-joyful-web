@@ -77,3 +77,106 @@ export async function getGameById(
   const result = await pool.query<GameWithStatus>(query, [gameId, userId]);
   return result.rows[0] || null;
 }
+
+export interface AttendeeUser {
+  id: string;
+  username: string;
+  name: string;
+}
+
+export interface AttendanceLists {
+  confirmed: AttendeeUser[];
+  declined: AttendeeUser[];
+  pending: AttendeeUser[];
+}
+
+/**
+ * Update attendance status with atomic transaction and cutoff check
+ */
+export async function updateAttendance(
+  gameId: number,
+  userId: string,
+  status: 'confirmed' | 'declined'
+): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const gameResult = await client.query(
+      'SELECT scheduled_at FROM games WHERE id = $1 FOR UPDATE',
+      [gameId]
+    );
+
+    if (gameResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      const error = new Error('Game not found');
+      (error as unknown as { code: string }).code = 'GAME_NOT_FOUND';
+      throw error;
+    }
+
+    const cutoffResult = await client.query(
+      `SELECT 1 FROM games WHERE id = $1 AND NOW() <= scheduled_at - INTERVAL '2 hours'`,
+      [gameId]
+    );
+
+    if (cutoffResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      const error = new Error('Signup is closed within 2 hours of game start');
+      (error as unknown as { code: string }).code = 'CUTOFF_PASSED';
+      throw error;
+    }
+
+    await client.query(
+      `INSERT INTO game_attendance (game_id, user_id, status)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (game_id, user_id) DO UPDATE SET status = $3, updated_at = NOW()`,
+      [gameId, userId, status]
+    );
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {
+      // Ignore rollback errors
+    });
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Get attendance lists for a game
+ */
+export async function getAttendance(gameId: number): Promise<AttendanceLists> {
+  const confirmedResult = await pool.query<AttendeeUser>(
+    `SELECT u.id::text, u.username, u.name
+     FROM users u
+     JOIN game_attendance ga ON u.id = ga.user_id
+     WHERE ga.game_id = $1 AND ga.status = 'confirmed'`,
+    [gameId]
+  );
+
+  const declinedResult = await pool.query<AttendeeUser>(
+    `SELECT u.id::text, u.username, u.name
+     FROM users u
+     JOIN game_attendance ga ON u.id = ga.user_id
+     WHERE ga.game_id = $1 AND ga.status = 'declined'`,
+    [gameId]
+  );
+
+  const pendingResult = await pool.query<AttendeeUser>(
+    `SELECT u.id::text, u.username, u.name
+     FROM users u
+     WHERE u.status = 'active'
+       AND u.id NOT IN (
+         SELECT user_id FROM game_attendance WHERE game_id = $1
+       )`,
+    [gameId]
+  );
+
+  return {
+    confirmed: confirmedResult.rows,
+    declined: declinedResult.rows,
+    pending: pendingResult.rows,
+  };
+}

@@ -157,4 +157,231 @@ describe('Games Routes', () => {
       await pool.query('DELETE FROM games WHERE id = $1', [game2Id]);
     });
   });
+
+  describe('POST /api/games/:id/attend', () => {
+    let attendeeToken: string;
+    let attendeeUserId: string;
+    let concurrencyToken: string;
+    let concurrencyUserId: string;
+    let rateLimitToken: string;
+    let rateLimitUserId: string;
+    let cutoffGameId: number;
+
+    beforeAll(async () => {
+      const passwordHash = await hashPassword('testpass');
+
+      const attendeeResult = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+        ['gameroutes_attendee', passwordHash, 'Attendee', 'player', 'active']
+      );
+      attendeeUserId = attendeeResult.rows[0].id.toString();
+      attendeeToken = generateToken(attendeeUserId, 'player');
+
+      const concurrencyResult = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+        ['gameroutes_concurrency', passwordHash, 'Concurrency', 'player', 'active']
+      );
+      concurrencyUserId = concurrencyResult.rows[0].id.toString();
+      concurrencyToken = generateToken(concurrencyUserId, 'player');
+
+      const rateLimitResult = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+        ['gameroutes_ratelimit', passwordHash, 'Rate Limit', 'player', 'active']
+      );
+      rateLimitUserId = rateLimitResult.rows[0].id.toString();
+      rateLimitToken = generateToken(rateLimitUserId, 'player');
+
+      const cutoffResult = await pool.query(
+        `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [new Date(Date.now() + 60 * 60 * 1000).toISOString(), 'Cutoff Stadium', teamAId, teamBId, 'scheduled']
+      );
+      cutoffGameId = cutoffResult.rows[0].id;
+    });
+
+    afterAll(async () => {
+      await pool.query('DELETE FROM game_attendance WHERE user_id IN ($1, $2, $3)', [attendeeUserId, concurrencyUserId, rateLimitUserId]);
+      await pool.query('DELETE FROM games WHERE id = $1', [cutoffGameId]);
+      await pool.query('DELETE FROM users WHERE username IN ($1, $2, $3)', ['gameroutes_attendee', 'gameroutes_concurrency', 'gameroutes_ratelimit']);
+    });
+
+    it('should return 401 without token', async () => {
+      const response = await request(app)
+        .post(`/api/games/${gameId}/attend`)
+        .send({ status: 'confirmed' });
+      expect(response.status).toBe(401);
+    });
+
+    it('should confirm attendance with valid token and status confirmed', async () => {
+      const response = await request(app)
+        .post(`/api/games/${gameId}/attend`)
+        .set('Authorization', `Bearer ${attendeeToken}`)
+        .send({ status: 'confirmed' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should decline attendance with status declined', async () => {
+      const response = await request(app)
+        .post(`/api/games/${gameId}/attend`)
+        .set('Authorization', `Bearer ${attendeeToken}`)
+        .send({ status: 'declined' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should reject signup within 2 hours of game start', async () => {
+      const response = await request(app)
+        .post(`/api/games/${cutoffGameId}/attend`)
+        .set('Authorization', `Bearer ${attendeeToken}`)
+        .send({ status: 'confirmed' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toMatch(/cutoff|closed|too late|within 2 hours/i);
+    });
+
+    it('should reject invalid status values via Zod', async () => {
+      const response = await request(app)
+        .post(`/api/games/${gameId}/attend`)
+        .set('Authorization', `Bearer ${attendeeToken}`)
+        .send({ status: 'maybe' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should reject invalid gameId format', async () => {
+      const response = await request(app)
+        .post('/api/games/abc/attend')
+        .set('Authorization', `Bearer ${attendeeToken}`)
+        .send({ status: 'confirmed' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should handle concurrent signups consistently', async () => {
+      const promises = Array.from({ length: 10 }).map(() =>
+        request(app)
+          .post(`/api/games/${gameId}/attend`)
+          .set('Authorization', `Bearer ${concurrencyToken}`)
+          .send({ status: 'confirmed' })
+      );
+
+      const responses = await Promise.all(promises);
+      const successCount = responses.filter((r) => r.status === 200).length;
+
+      expect(successCount).toBe(10);
+
+      const attendanceResponse = await request(app)
+        .get(`/api/games/${gameId}/attendance`)
+        .set('Authorization', `Bearer ${concurrencyToken}`);
+
+      const confirmedIds = attendanceResponse.body.data.confirmed.map((u: { id: string }) => u.id);
+      expect(confirmedIds).toContain(concurrencyUserId);
+    });
+
+    it('should rate limit after 10 requests per minute', async () => {
+      for (let i = 0; i < 10; i++) {
+        const res = await request(app)
+          .post(`/api/games/${gameId}/attend`)
+          .set('Authorization', `Bearer ${rateLimitToken}`)
+          .send({ status: 'confirmed' });
+        expect([200, 429]).toContain(res.status);
+      }
+
+      const response = await request(app)
+        .post(`/api/games/${gameId}/attend`)
+        .set('Authorization', `Bearer ${rateLimitToken}`)
+        .send({ status: 'confirmed' });
+
+      expect(response.status).toBe(429);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toMatch(/too many requests|rate/i);
+    });
+  });
+
+  describe('GET /api/games/:id/attendance', () => {
+    let pendingUserToken: string;
+    let pendingUserId: string;
+
+    beforeAll(async () => {
+      const passwordHash = await hashPassword('testpass');
+      const result = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+        ['gameroutes_pending', passwordHash, 'Pending Player', 'player', 'active']
+      );
+      pendingUserId = result.rows[0].id.toString();
+      pendingUserToken = generateToken(pendingUserId, 'player');
+    });
+
+    afterAll(async () => {
+      await pool.query('DELETE FROM game_attendance WHERE user_id = $1', [pendingUserId]);
+      await pool.query('DELETE FROM users WHERE username = $1', ['gameroutes_pending']);
+    });
+
+    it('should return 401 without token', async () => {
+      const response = await request(app).get(`/api/games/${gameId}/attendance`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return confirmed, declined, and pending lists', async () => {
+      await pool.query(
+        `INSERT INTO game_attendance (game_id, user_id, status)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (game_id, user_id) DO UPDATE SET status = $3`,
+        [gameId, playerUserId, 'confirmed']
+      );
+      await pool.query(
+        `INSERT INTO game_attendance (game_id, user_id, status)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (game_id, user_id) DO UPDATE SET status = $3`,
+        [gameId, pendingUserId, 'declined']
+      );
+
+      const passwordHash = await hashPassword('testpass');
+      const freshResult = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+        ['gameroutes_fresh', passwordHash, 'Fresh Player', 'player', 'active']
+      );
+      const freshUserId = freshResult.rows[0].id.toString();
+
+      const response = await request(app)
+        .get(`/api/games/${gameId}/attendance`)
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data.confirmed)).toBe(true);
+      expect(Array.isArray(response.body.data.declined)).toBe(true);
+      expect(Array.isArray(response.body.data.pending)).toBe(true);
+
+      const confirmedIds = response.body.data.confirmed.map((u: { id: string }) => u.id);
+      const declinedIds = response.body.data.declined.map((u: { id: string }) => u.id);
+      const pendingIds = response.body.data.pending.map((u: { id: string }) => u.id);
+
+      expect(confirmedIds).toContain(playerUserId);
+      expect(declinedIds).toContain(pendingUserId);
+      expect(pendingIds).toContain(freshUserId);
+
+      await pool.query('DELETE FROM game_attendance WHERE user_id = $1', [freshUserId]);
+      await pool.query('DELETE FROM users WHERE username = $1', ['gameroutes_fresh']);
+    });
+  });
 });
