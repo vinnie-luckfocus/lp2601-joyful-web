@@ -130,7 +130,7 @@ ccpm/epics/
 
 3. **Epic 合并**：
    - 当前 Epic 下所有 Task 开发并提交完成后，返回 main worktree。
-   - **默认行为**：在调用 `/pm:epic-merge <NN-feature-name>` 之前暂停并输出合并摘要，等待用户确认（除非传入 `--auto-merge` 参数）。
+   - **默认行为**：直接调用 `/pm:epic-merge <NN-feature-name>` 自动合并到 `main`，无需人工确认。若需要暂停确认，可传入 `--no-auto-merge`。
    - 如果合并发生冲突，停止整个流程，输出冲突详情和解决建议，等待人工介入。
 
 4. **循环处理**：
@@ -192,7 +192,8 @@ ccpm/epics/
 |------|------|--------|------|
 | `--max-audit-rounds` | `number` | `2` | 自动审核不通过时，自动修正并重新审核的最大迭代次数。超过该次数仍不通过则停止流程。 |
 | `--max-fix-rounds` | `number` | `3` | Epic 级测试失败后，自动分析并修复代码的最大迭代次数。超过该次数仍失败则停止流程。 |
-| `--auto-merge` | `boolean` | `false` | 若为 `true`，Epic 开发完成后直接执行 `/pm:epic-merge` 合并到 `main`，不经过人工确认。 **默认 false 为保障安全，建议仅在 CI/自动化场景下开启。** |
+| `--auto-merge` | `boolean` | `true` | 默认为 `true`，Epic 开发完成后**自动执行** `/pm:epic-merge` 合并到 `main`。若需要合并前人工确认，传入 `--no-auto-merge` 或 `--auto-merge=false`。 |
+| `--no-auto-merge` | `boolean` | `false` | 显式关闭自动合并。传入后，每次 `/pm:epic-merge` 前会暂停并输出合并摘要，等待用户确认后再继续。 |
 | `--skip-epic` | `boolean` | `false` | 若当前 Epic 因合并冲突或测试无法通过而阻塞，传入此参数可**强制跳过**该 Epic，继续处理下一个。跳过的 Epic 会被记录到交付报告的 "跳过的 Epic" 列表中。 |
 | `--dry-run` | `boolean` | `false` | 只生成 PRD 和 Epic 拆解计划，不执行实际的开发、同步、合并和验证。 |
 
@@ -219,8 +220,8 @@ ccpm/epics/
 |------|------|--------|------|
 | `--from` | `string` | 自动检测 | 指定从某个 PRD/Epic 开始继续开发（如 `02-homepage-dashboard`）。若未指定，Skill 自动扫描并定位到第一个未完成的 Epic。 |
 | `--max-fix-rounds` | `number` | `3` | 同 `/auto-dev`，测试失败后自动修复的最大迭代次数。 |
-| `--auto-merge` | `boolean` | `false` | 同 `/auto-dev`，开启后 Epic 合并前不暂停确认。 |
-| `--skip-epic` | `boolean` | `false` | 同 `/auto-dev`，允许强制跳过当前阻塞的 Epic。 |
+| `--auto-merge` | `boolean` | `true` | 同 `/auto-dev`，默认自动合并。 |
+| `--no-auto-merge` | `boolean` | `false` | 同 `/auto-dev`，显式关闭自动合并。 |
 | `--dry-run` | `boolean` | `false` | 只扫描并输出剩余工作计划（PRD/Epic 清单），不执行实际开发。 |
 
 #### 执行状态返回
@@ -234,8 +235,11 @@ ccpm/epics/
 以下参数在 `/auto-dev` 和 `/auto-resume` 中语义完全一致：
 - `--max-fix-rounds`
 - `--auto-merge`
+- `--no-auto-merge`
 - `--skip-epic`
 - `--dry-run`
+
+> 注：`--max-audit-rounds` 仅存在于 `/auto-dev`，因为 `/auto-resume` 不涉及需求拆解与审核阶段。
 
 ### 4.4 运行时文件约定
 | 文件路径 | 用途 |
@@ -337,7 +341,7 @@ Skill 维护一个状态文件 `ccpm/auto-dev-state.json`，记录当前所在 P
    - 调用 agent 完成代码编写。
    - 每个 Task 完成后 `git commit -m "Issue #{number}: {description}"`。
 4. **Epic 合并**：
-   - 默认在调用 `/pm:epic-merge <NN-feature-name>` 前暂停并输出摘要，等待用户确认（除非传入 `--auto-merge`）。
+   - 默认直接调用 `/pm:epic-merge <NN-feature-name>` 自动合并到 `main`。若需人工确认，传入 `--no-auto-merge`。
    - 如果合并冲突，停止流程并等待人工介入。
 5. **循环处理**：
    - 继续下一个未完成的 Epic，直到全部完成。
