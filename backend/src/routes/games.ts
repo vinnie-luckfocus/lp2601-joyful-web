@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { verifyToken } from '../middleware/auth';
 import { getGames, getGameById, updateAttendance, getAttendance } from '../services/games';
+import pool from '../config/database';
 
 const router = Router();
 
@@ -243,6 +244,135 @@ router.get(
         meta: {},
       });
     } catch (error) {
+      res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Internal server error',
+        meta: {},
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/games/:id/lineup
+ * Get lineup and tactics for a game (team members only)
+ */
+router.get(
+  '/:id/lineup',
+  verifyToken,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          data: null,
+          error: 'Unauthorized',
+          meta: {},
+        });
+        return;
+      }
+
+      const parseId = gameIdSchema.safeParse(req.params.id);
+      if (!parseId.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid gameId format',
+          meta: {},
+        });
+        return;
+      }
+
+      const gameId = parseId.data;
+
+      // Verify game exists and get team_ids
+      const gameResult = await pool.query<{ home_team_id: number; away_team_id: number }>(
+        'SELECT home_team_id, away_team_id FROM games WHERE id = $1',
+        [gameId]
+      );
+
+      if (gameResult.rows.length === 0) {
+        res.status(404).json({
+          success: false,
+          data: null,
+          error: 'Game not found',
+          meta: {},
+        });
+        return;
+      }
+
+      const { home_team_id, away_team_id } = gameResult.rows[0];
+
+      // Verify user belongs to one of the game's teams
+      const userResult = await pool.query<{ team_id: number | null }>(
+        'SELECT team_id FROM users WHERE id = $1',
+        [req.user.userId]
+      );
+
+      const userTeamId = userResult.rows[0]?.team_id;
+      if (userTeamId !== home_team_id && userTeamId !== away_team_id) {
+        res.status(403).json({
+          success: false,
+          data: null,
+          error: 'You do not have access to this game',
+          meta: {},
+        });
+        return;
+      }
+
+      // Fetch lineup
+      const lineupResult = await pool.query(
+        `
+          SELECT
+            gl.batting_order,
+            gl.user_id,
+            u.name,
+            gl.position,
+            gl.jersey_number
+          FROM game_lineups gl
+          JOIN users u ON gl.user_id = u.id
+          WHERE gl.game_id = $1
+          ORDER BY gl.batting_order ASC
+        `,
+        [gameId]
+      );
+
+      // Fetch tactics
+      const tacticsResult = await pool.query(
+        `
+          SELECT
+            general_notes,
+            signals,
+            defense_strategy
+          FROM game_tactics
+          WHERE game_id = $1
+        `,
+        [gameId]
+      );
+
+      const tactics = tacticsResult.rows[0] || {
+        general_notes: null,
+        signals: {},
+        defense_strategy: null,
+      };
+
+      res.json({
+        success: true,
+        data: {
+          game_id: gameId,
+          lineup: lineupResult.rows,
+          tactics: {
+            general_notes: tactics.general_notes,
+            signals: tactics.signals,
+            defense_strategy: tactics.defense_strategy,
+          },
+        },
+        error: null,
+        meta: {},
+      });
+    } catch (error) {
+      console.error('Failed to fetch lineup:', error);
       res.status(500).json({
         success: false,
         data: null,
