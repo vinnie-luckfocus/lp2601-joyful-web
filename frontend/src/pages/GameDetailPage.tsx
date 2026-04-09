@@ -32,15 +32,15 @@ const getGameStatusText = (status: string): string => {
   return map[status] || status;
 };
 
-const getGameStatusBadgeStyle = (status: string): React.CSSProperties => {
-  const colors: Record<string, { background: string; color: string }> = {
-    scheduled: { background: '#041E42', color: '#FFFFFF' },
-    live: { background: '#2D8659', color: '#FFFFFF' },
-    completed: { background: '#A0AEC0', color: '#FFFFFF' },
-    postponed: { background: '#E67E22', color: '#FFFFFF' },
-    cancelled: { background: '#DC2626', color: '#FFFFFF' },
+const getGameStatusBadgeStyle = (status: string): { backgroundColor: string; color: string } => {
+  const colors: Record<string, { backgroundColor: string; color: string }> = {
+    scheduled: { backgroundColor: '#041E42', color: '#FFFFFF' },
+    live: { backgroundColor: '#2D8659', color: '#FFFFFF' },
+    completed: { backgroundColor: '#A0AEC0', color: '#FFFFFF' },
+    postponed: { backgroundColor: '#E67E22', color: '#FFFFFF' },
+    cancelled: { backgroundColor: '#DC2626', color: '#FFFFFF' },
   };
-  return colors[status] || { background: '#041E42', color: '#FFFFFF' };
+  return colors[status] || { backgroundColor: '#041E42', color: '#FFFFFF' };
 };
 
 const formatGameDateTime = (scheduledAt: string): string => {
@@ -130,7 +130,6 @@ export const GameDetailPage: React.FC = () => {
     isLoading: attendanceLoading,
     error: attendanceError,
     updateAttendance,
-    refetch: refetchAttendance,
   } = useAttendance(gameId);
 
   useEffect(() => {
@@ -220,7 +219,7 @@ export const GameDetailPage: React.FC = () => {
                 {statusBadgeStyle && (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: statusBadgeStyle.background, color: statusBadgeStyle.color }}
+                    style={{ backgroundColor: statusBadgeStyle.backgroundColor, color: statusBadgeStyle.color }}
                     data-testid="game-status-badge"
                   >
                     {getGameStatusText(game.status)}

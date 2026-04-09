@@ -137,9 +137,9 @@ export const useAttendance = (gameId: number): UseAttendanceReturn => {
         if (previousAttendance !== undefined) {
           setAttendance(previousAttendance);
         }
-        const errorMessage = err instanceof Error ? err.message : 'An error occurred while updating attendance';
-        setError(new Error(errorMessage));
-        throw err;
+        const axiosError = err as { response?: { data?: { error?: string } } };
+        const message = axiosError.response?.data?.error || (err instanceof Error ? err.message : 'An error occurred while updating attendance');
+        throw new Error(message);
       }
     },
     [gameId, attendance]

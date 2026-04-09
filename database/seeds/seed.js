@@ -74,6 +74,17 @@ const adminUser = {
   role: 'admin'
 };
 
+// E2E test user (password meets 6-char minimum for login API)
+const e2eUser = {
+  username: 'e2e_player',
+  password: 'testpass123',
+  name: 'E2E测试球员',
+  role: 'player',
+  team_id: null, // set dynamically after teams are inserted
+  jersey_number: 99,
+  position: '外野手'
+};
+
 /**
  * Hash password using bcrypt
  * @param {string} password - Plain text password
@@ -239,6 +250,34 @@ async function insertAdmin() {
 }
 
 /**
+ * Insert E2E test user
+ * @param {number} teamId - Team ID to assign
+ * @returns {Promise<number>} - Inserted user ID
+ */
+async function insertE2EUser(teamId) {
+  console.log('Inserting E2E test user...');
+  const passwordHash = await hashPassword(e2eUser.password);
+  const result = await client.query(
+    `INSERT INTO users (username, password_hash, name, team_id, jersey_number, position, role, status, is_first_login)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id`,
+    [
+      e2eUser.username,
+      passwordHash,
+      e2eUser.name,
+      teamId,
+      e2eUser.jersey_number,
+      e2eUser.position,
+      e2eUser.role,
+      'active',
+      false
+    ]
+  );
+  console.log(`  - E2E User: ${e2eUser.username} (${e2eUser.name})`);
+  return result.rows[0].id;
+}
+
+/**
  * Insert attendance records for all players across all games
  * @param {Array} gameIds - Array of game IDs
  * @param {Array} playerIds - Array of player user IDs
@@ -335,8 +374,11 @@ async function run() {
     // Insert games
     const gameIds = await insertGames(teamIds);
 
+    // Insert E2E test user
+    const e2eUserId = await insertE2EUser(teamIds[0]);
+
     // Insert attendance records for all players on all games
-    await insertAttendance(gameIds, playerIds);
+    await insertAttendance(gameIds, [...playerIds, e2eUserId]);
 
     // Insert admin
     await insertAdmin();

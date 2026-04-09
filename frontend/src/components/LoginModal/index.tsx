@@ -13,7 +13,7 @@ type ModalView = 'login' | 'change-password' | 'password-changed';
 
 const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const { login, logout, changePassword, user, isLoading, error, isAuthenticated } = useAuthStore();
+  const { login, changePassword, user, isLoading, error, isAuthenticated } = useAuthStore();
 
   const [view, setView] = useState<ModalView>('login');
   const [shake, setShake] = useState(false);

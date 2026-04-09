@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Navbar } from '../components/Layout/Navbar';
@@ -8,7 +8,7 @@ import { ErrorState } from '../components/common/ErrorState';
 import { Skeleton } from '../components/common/Skeleton';
 import { ScheduleGameCard } from '../components/games/ScheduleGameCard';
 import { useGames } from '../hooks/useGames';
-import { useAttendance, Attendance } from '../hooks/useAttendance';
+import { useAttendance } from '../hooks/useAttendance';
 import { useAuthStore } from '../stores/auth';
 import type { Game } from '../hooks/usePublicGames';
 
@@ -107,8 +107,12 @@ const itemVariants = {
 
 export const GameSchedulePage: React.FC = () => {
   const { games, isLoading, error, refetch } = useGames();
-  const { logout, user, isAuthenticated } = useAuthStore();
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { logout, user, isAuthenticated, checkAuth } = useAuthStore();
+  const [, setLoginModalOpen] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const availableMonths = useMemo(() => {
     const months = new Set<number>();
