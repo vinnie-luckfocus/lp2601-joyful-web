@@ -5,6 +5,8 @@
  */
 
 import pool from '../../../backend/src/config/database';
+import * as fs from 'fs';
+import * as path from 'path';
 
 describe('Database Schema', () => {
   afterAll(async () => {
@@ -167,6 +169,75 @@ describe('Database Schema', () => {
         )`
       );
       expect(result.rows[0].exists).toBe(true);
+    });
+  });
+
+  describe('Migration 003 Rollback', () => {
+    const migrationPath = path.join(__dirname, '../../../database/migrations/003_game_schedule_adjustments.sql');
+
+    function extractDownSql(sql: string): string {
+      const lines = sql.split('\n');
+      let inDown = false;
+      const downLines: string[] = [];
+
+      for (const line of lines) {
+        if (line.includes('-- DOWN MIGRATION')) {
+          inDown = true;
+          continue;
+        }
+        if (inDown) {
+          const cleaned = line.replace(/^--\s*/, '');
+          if (cleaned.trim()) {
+            downLines.push(cleaned);
+          }
+        }
+      }
+
+      return downLines.join('\n');
+    }
+
+    function extractUpSql(sql: string): string {
+      const lines = sql.split('\n');
+      let inUp = false;
+      const upLines: string[] = [];
+
+      for (const line of lines) {
+        if (line.includes('-- UP MIGRATION')) {
+          inUp = true;
+          continue;
+        }
+        if (inUp && line.includes('-- DOWN MIGRATION')) {
+          break;
+        }
+        if (inUp) {
+          if (line.trim() && !line.trim().startsWith('--')) {
+            upLines.push(line);
+          }
+        }
+      }
+
+      return upLines.join('\n');
+    }
+
+    it('should remove the composite index on rollback', async () => {
+      const sql = fs.readFileSync(migrationPath, 'utf-8');
+      const downSql = extractDownSql(sql);
+
+      await pool.query(downSql);
+
+      const result = await pool.query(
+        `SELECT EXISTS (
+          SELECT FROM pg_indexes
+          WHERE indexname = 'idx_attendance_game_status'
+        )`
+      );
+      expect(result.rows[0].exists).toBe(false);
+    });
+
+    afterAll(async () => {
+      const sql = fs.readFileSync(migrationPath, 'utf-8');
+      const upSql = extractUpSql(sql);
+      await pool.query(upSql);
     });
   });
 });

@@ -24,7 +24,7 @@ const teams = [
   { name: 'Joyful B队', division: '大联盟' }
 ];
 
-// Players for Team A (9 players)
+// Players for Team A (10 players)
 const teamAPlayers = [
   { name: '张伟', jersey_number: 1, position: '投手', username: 'player_01' },
   { name: '王芳', jersey_number: 2, position: '捕手', username: 'player_02' },
@@ -38,7 +38,7 @@ const teamAPlayers = [
   { name: '吴刚', jersey_number: 10, position: '指定打击', username: 'player_10' }
 ];
 
-// Players for Team B (9 players)
+// Players for Team B (10 players)
 const teamBPlayers = [
   { name: '郑华', jersey_number: 11, position: '投手', username: 'player_11' },
   { name: '黄静', jersey_number: 12, position: '捕手', username: 'player_12' },
@@ -52,36 +52,18 @@ const teamBPlayers = [
   { name: '何伟', jersey_number: 20, position: '指定打击', username: 'player_20' }
 ];
 
-// Games schedule (4 weeks, Saturdays at 14:00)
+// Games schedule (10 upcoming Saturdays at 14:00)
 const games = [
-  {
-    scheduled_at: '2025-04-12 14:00:00+08',
-    location: 'A球场',
-    home_team_index: 0,
-    away_team_index: 1,
-    status: 'scheduled'
-  },
-  {
-    scheduled_at: '2025-04-19 14:00:00+08',
-    location: 'B球场',
-    home_team_index: 1,
-    away_team_index: 0,
-    status: 'scheduled'
-  },
-  {
-    scheduled_at: '2025-04-26 14:00:00+08',
-    location: 'A球场',
-    home_team_index: 0,
-    away_team_index: 1,
-    status: 'scheduled'
-  },
-  {
-    scheduled_at: '2025-05-03 14:00:00+08',
-    location: 'B球场',
-    home_team_index: 1,
-    away_team_index: 0,
-    status: 'scheduled'
-  }
+  { scheduled_at: '2026-04-11 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
+  { scheduled_at: '2026-04-18 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
+  { scheduled_at: '2026-04-25 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
+  { scheduled_at: '2026-05-02 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
+  { scheduled_at: '2026-05-09 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
+  { scheduled_at: '2026-05-16 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
+  { scheduled_at: '2026-05-23 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
+  { scheduled_at: '2026-05-30 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
+  { scheduled_at: '2026-06-06 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
+  { scheduled_at: '2026-06-13 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' }
 ];
 
 // Admin user
@@ -173,16 +155,18 @@ async function insertTeams() {
  * @param {Array} players - Array of player objects
  * @param {number} teamId - Team ID
  * @param {string} teamName - Team name for logging
+ * @returns {Promise<Array>} - Array of inserted user IDs
  */
 async function insertPlayers(players, teamId, teamName) {
   console.log(`Inserting players for ${teamName}...`);
 
+  const userIds = [];
   for (const player of players) {
     const passwordHash = await hashPassword(player.jersey_number.toString());
 
-    await client.query(
+    const result = await client.query(
       `INSERT INTO users (username, password_hash, name, team_id, jersey_number, position, role, status, is_first_login)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
       [
         player.username,
         passwordHash,
@@ -195,17 +179,22 @@ async function insertPlayers(players, teamId, teamName) {
         true
       ]
     );
+    userIds.push(result.rows[0].id);
     console.log(`  - ${player.name} (#${player.jersey_number}, ${player.position})`);
   }
+
+  return userIds;
 }
 
 /**
  * Insert games
  * @param {Array} teamIds - Array of team IDs
+ * @returns {Promise<Array>} - Array of inserted game IDs
  */
 async function insertGames(teamIds) {
   console.log('Inserting games...');
 
+  const gameIds = [];
   for (const game of games) {
     const result = await client.query(
       `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status)
@@ -218,8 +207,11 @@ async function insertGames(teamIds) {
         game.status
       ]
     );
+    gameIds.push(result.rows[0].id);
     console.log(`  - Game ${result.rows[0].id}: ${game.scheduled_at} at ${game.location}`);
   }
+
+  return gameIds;
 }
 
 /**
@@ -247,6 +239,29 @@ async function insertAdmin() {
 }
 
 /**
+ * Insert attendance records for all players across all games
+ * @param {Array} gameIds - Array of game IDs
+ * @param {Array} playerIds - Array of player user IDs
+ */
+async function insertAttendance(gameIds, playerIds) {
+  console.log('Inserting attendance records...');
+
+  let count = 0;
+  for (const gameId of gameIds) {
+    for (const playerId of playerIds) {
+      await client.query(
+        `INSERT INTO game_attendance (game_id, user_id, status)
+         VALUES ($1, $2, $3)`,
+        [gameId, playerId, 'pending']
+      );
+      count += 1;
+    }
+  }
+
+  console.log(`  - Created ${count} attendance records`);
+}
+
+/**
  * Verify seed data was created correctly
  */
 async function verifyData() {
@@ -256,11 +271,13 @@ async function verifyData() {
   const playerCount = await client.query('SELECT COUNT(*) FROM users WHERE role = $1', ['player']);
   const adminCount = await client.query('SELECT COUNT(*) FROM users WHERE role = $1', ['admin']);
   const gameCount = await client.query('SELECT COUNT(*) FROM games');
+  const attendanceCount = await client.query('SELECT COUNT(*) FROM game_attendance');
 
   console.log(`  - Teams: ${teamCount.rows[0].count}`);
   console.log(`  - Players: ${playerCount.rows[0].count}`);
   console.log(`  - Admins: ${adminCount.rows[0].count}`);
   console.log(`  - Games: ${gameCount.rows[0].count}`);
+  console.log(`  - Attendance: ${attendanceCount.rows[0].count}`);
 
   // Verify team assignments
   const teamAPlayers = await client.query(
@@ -279,7 +296,8 @@ async function verifyData() {
     teams: parseInt(teamCount.rows[0].count),
     players: parseInt(playerCount.rows[0].count),
     admins: parseInt(adminCount.rows[0].count),
-    games: parseInt(gameCount.rows[0].count)
+    games: parseInt(gameCount.rows[0].count),
+    attendance: parseInt(attendanceCount.rows[0].count)
   };
 }
 
@@ -310,11 +328,15 @@ async function run() {
     const teamIds = await insertTeams();
 
     // Insert players for each team
-    await insertPlayers(teamAPlayers, teamIds[0], 'Joyful A队');
-    await insertPlayers(teamBPlayers, teamIds[1], 'Joyful B队');
+    const teamAUserIds = await insertPlayers(teamAPlayers, teamIds[0], 'Joyful A队');
+    const teamBUserIds = await insertPlayers(teamBPlayers, teamIds[1], 'Joyful B队');
+    const playerIds = [...teamAUserIds, ...teamBUserIds];
 
     // Insert games
-    await insertGames(teamIds);
+    const gameIds = await insertGames(teamIds);
+
+    // Insert attendance records for all players on all games
+    await insertAttendance(gameIds, playerIds);
 
     // Insert admin
     await insertAdmin();
@@ -330,7 +352,8 @@ async function run() {
     console.log('========================================');
     console.log(`Teams: ${stats.teams}`);
     console.log(`Players: ${stats.players} (10 per team)`);
-    console.log(`Games: ${stats.games} (4 weeks schedule)`);
+    console.log(`Games: ${stats.games} (10 weeks schedule)`);
+    console.log(`Attendance: ${stats.attendance}`);
     console.log(`Admin: ${stats.admins}`);
     console.log('\nSeed data summary complete.');
     console.log('  Use admin username to log in and complete first-login password change.');
