@@ -79,6 +79,7 @@ const ScheduleGameCardWithAttendance: React.FC<ScheduleGameCardWithAttendancePro
       myStatus={isAuthenticated ? (attendance?.status ?? null) : null}
       confirmedCount={isAuthenticated ? (attendance?.confirmedCount ?? 0) : 0}
       index={index}
+      href={`/games/${game.id}`}
     />
   );
 };

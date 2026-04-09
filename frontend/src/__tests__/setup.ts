@@ -57,3 +57,9 @@ Object.defineProperty(window, 'localStorage', {
 
 // Define global for tests
 (globalThis as typeof globalThis & { global: typeof globalThis }).global = globalThis;
+
+// Mock react-helmet-async for jsdom
+vi.mock('react-helmet-async', () => ({
+  Helmet: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+  HelmetProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+}));

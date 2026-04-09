@@ -9,6 +9,7 @@ export interface ScheduleGameCardProps {
   myStatus: 'confirmed' | 'declined' | null;
   confirmedCount: number;
   index?: number;
+  href?: string;
 }
 
 export const ScheduleGameCard: React.FC<ScheduleGameCardProps> = ({
@@ -16,22 +17,25 @@ export const ScheduleGameCard: React.FC<ScheduleGameCardProps> = ({
   myStatus,
   confirmedCount,
   index = 0,
+  href,
 }) => {
   const isConfirmed = myStatus === 'confirmed';
+  const commonProps = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.4, delay: index * 0.1, ease: 'easeOut' },
+    whileHover: { y: -4, transition: { duration: 0.2 } },
+    'data-testid': 'schedule-game-card',
+    className: `block bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-sm hover:shadow-md cursor-pointer ${
+      isConfirmed ? 'border-l-4' : ''
+    }`,
+    style: isConfirmed
+      ? { willChange: 'transform', backgroundColor: '#FFFFFF', borderLeftColor: '#BF0D3E', borderLeftWidth: '4px' }
+      : { willChange: 'transform', backgroundColor: '#FFFFFF' },
+  };
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1, ease: 'easeOut' }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      style={{ willChange: 'transform', backgroundColor: '#FFFFFF' }}
-      data-testid="schedule-game-card"
-      className={`bg-white rounded-xl border border-[#E2E8F0] p-5 shadow-sm hover:shadow-md ${
-        isConfirmed ? 'border-l-4' : ''
-      }`}
-      {...(isConfirmed ? { style: { willChange: 'transform', backgroundColor: '#FFFFFF', borderLeftColor: '#BF0D3E', borderLeftWidth: '4px' } } : { style: { willChange: 'transform', backgroundColor: '#FFFFFF' } })}
-    >
+  const content = (
+    <>
       <GameCardMeta game={game} />
       <GameCardTeams game={game} />
 
@@ -59,6 +63,16 @@ export const ScheduleGameCard: React.FC<ScheduleGameCardProps> = ({
           </div>
         </div>
       </div>
+    </>
+  );
+
+  return href ? (
+    <motion.a {...commonProps} href={href}>
+      {content}
+    </motion.a>
+  ) : (
+    <motion.div {...commonProps}>
+      {content}
     </motion.div>
   );
 };
