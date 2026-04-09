@@ -20,8 +20,8 @@ const client = new Client({
 
 // Seed data
 const teams = [
-  { name: 'Joyful A队', division: '大联盟' },
-  { name: 'Joyful B队', division: '大联盟' }
+  { name: 'Joyful A队', division: '大联盟', logo_url: 'https://placehold.co/120x120/041E42/FFFFFF?text=A', description: 'Joyful A队是大联盟中的强队，拥有多位经验丰富的球员。' },
+  { name: 'Joyful B队', division: '大联盟', logo_url: 'https://placehold.co/120x120/BF0D3E/FFFFFF?text=B', description: 'Joyful B队以年轻球员为主，充满活力和拼搏精神。' }
 ];
 
 // Players for Team A (10 players)
@@ -52,18 +52,22 @@ const teamBPlayers = [
   { name: '何伟', jersey_number: 20, position: '指定打击', username: 'player_20' }
 ];
 
-// Games schedule (10 upcoming Saturdays at 14:00)
+// Completed games for record calculation
+const completedGames = [
+  { scheduled_at: '2026-01-11 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'completed', home_score: 5, away_score: 3 },
+  { scheduled_at: '2026-01-18 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'completed', home_score: 2, away_score: 4 },
+  { scheduled_at: '2026-01-25 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'completed', home_score: 1, away_score: 6 },
+  { scheduled_at: '2026-02-08 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'completed', home_score: 7, away_score: 5 }
+];
+
+// Games schedule (6 upcoming Saturdays at 14:00)
 const games = [
   { scheduled_at: '2026-04-11 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
   { scheduled_at: '2026-04-18 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
   { scheduled_at: '2026-04-25 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
   { scheduled_at: '2026-05-02 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
   { scheduled_at: '2026-05-09 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
-  { scheduled_at: '2026-05-16 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
-  { scheduled_at: '2026-05-23 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
-  { scheduled_at: '2026-05-30 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' },
-  { scheduled_at: '2026-06-06 14:00:00+08', location: 'A球场', home_team_index: 0, away_team_index: 1, status: 'scheduled' },
-  { scheduled_at: '2026-06-13 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' }
+  { scheduled_at: '2026-05-16 14:00:00+08', location: 'B球场', home_team_index: 1, away_team_index: 0, status: 'scheduled' }
 ];
 
 // Admin user
@@ -151,8 +155,8 @@ async function insertTeams() {
   const teamIds = [];
   for (const team of teams) {
     const result = await client.query(
-      'INSERT INTO teams (name, division) VALUES ($1, $2) RETURNING id',
-      [team.name, team.division]
+      'INSERT INTO teams (name, division, logo_url, description) VALUES ($1, $2, $3, $4) RETURNING id',
+      [team.name, team.division, team.logo_url, team.description]
     );
     teamIds.push(result.rows[0].id);
     console.log(`  - Created: ${team.name} (ID: ${result.rows[0].id})`);
@@ -203,7 +207,7 @@ async function insertPlayers(players, teamId, teamName) {
  * @returns {Promise<Array>} - Array of inserted game IDs
  */
 async function insertGames(teamIds) {
-  console.log('Inserting games...');
+  console.log('Inserting scheduled games...');
 
   const gameIds = [];
   for (const game of games) {
@@ -223,6 +227,51 @@ async function insertGames(teamIds) {
   }
 
   return gameIds;
+}
+
+async function insertCompletedGames(teamIds) {
+  console.log('Inserting completed games...');
+
+  const gameIds = [];
+  for (const game of completedGames) {
+    const result = await client.query(
+      `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status, home_score, away_score)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [
+        game.scheduled_at,
+        game.location,
+        teamIds[game.home_team_index],
+        teamIds[game.away_team_index],
+        game.status,
+        game.home_score,
+        game.away_score
+      ]
+    );
+    gameIds.push(result.rows[0].id);
+    console.log(`  - Completed Game ${result.rows[0].id}: ${game.home_score} vs ${game.away_score}`);
+  }
+
+  return gameIds;
+}
+
+async function assignCaptains(teamIds, teamAUserIds, teamBUserIds) {
+  console.log('Assigning team captains...');
+
+  if (teamAUserIds.length > 0) {
+    await client.query(
+      'UPDATE teams SET captain_id = $1 WHERE id = $2',
+      [teamAUserIds[0], teamIds[0]]
+    );
+    console.log(`  - Team A captain: User ${teamAUserIds[0]}`);
+  }
+
+  if (teamBUserIds.length > 0) {
+    await client.query(
+      'UPDATE teams SET captain_id = $1 WHERE id = $2',
+      [teamBUserIds[0], teamIds[1]]
+    );
+    console.log(`  - Team B captain: User ${teamBUserIds[0]}`);
+  }
 }
 
 /**
@@ -371,13 +420,19 @@ async function run() {
     const teamBUserIds = await insertPlayers(teamBPlayers, teamIds[1], 'Joyful B队');
     const playerIds = [...teamAUserIds, ...teamBUserIds];
 
-    // Insert games
+    // Assign captains
+    await assignCaptains(teamIds, teamAUserIds, teamBUserIds);
+
+    // Insert completed games for record calculation
+    const completedGameIds = await insertCompletedGames(teamIds);
+
+    // Insert scheduled games
     const gameIds = await insertGames(teamIds);
 
     // Insert E2E test user
     const e2eUserId = await insertE2EUser(teamIds[0]);
 
-    // Insert attendance records for all players on all games
+    // Insert attendance records for all players on all scheduled games
     await insertAttendance(gameIds, [...playerIds, e2eUserId]);
 
     // Insert admin
