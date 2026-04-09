@@ -11,6 +11,7 @@ import ComingSoon from './pages/ComingSoon'
 import GameSchedulePage from './pages/GameSchedulePage'
 import GameDetailPage from './pages/GameDetailPage'
 import TacticsBoardPage from './pages/TacticsBoardPage'
+import PlayerStatsPage from './pages/PlayerStatsPage'
 import TeamPage from './pages/TeamPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -26,6 +27,7 @@ function AppRoutes() {
       <Route path="/schedule" element={<GameSchedulePage />} />
       <Route path="/games/:id" element={<GameDetailPage />} />
       <Route path="/games/:id/tactics" element={<TacticsBoardPage />} />
+      <Route path="/stats" element={<PlayerStatsPage />} />
       <Route path="/help" element={<ComingSoon />} />
       <Route path="/contact" element={<ComingSoon />} />
       <Route path="/about" element={<ComingSoon />} />

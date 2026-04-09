@@ -3,6 +3,7 @@ import authRoutes from './auth';
 import adminRoutes from './admin';
 import publicRoutes from './public';
 import gamesRoutes from './games';
+import statsRoutes from './stats';
 import teamsRoutes from './teams';
 
 const router = Router();
@@ -15,6 +16,7 @@ router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
 router.use('/public', publicRoutes);
 router.use('/games', gamesRoutes);
+router.use('/stats', statsRoutes);
 router.use('/teams', teamsRoutes);
 
 export default router;
