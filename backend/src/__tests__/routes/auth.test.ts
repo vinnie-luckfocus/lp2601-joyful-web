@@ -84,7 +84,7 @@ describe('Auth Routes', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Invalid credentials');
+      expect(response.body.error).toBe('用户名或密码错误');
     });
 
     it('should reject invalid password', async () => {
@@ -100,7 +100,7 @@ describe('Auth Routes', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Invalid credentials');
+      expect(response.body.error).toBe('用户名或密码错误');
     });
 
     it('should reject short username', async () => {

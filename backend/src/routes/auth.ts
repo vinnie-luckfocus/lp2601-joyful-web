@@ -63,7 +63,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
     );
 
     if (result.rows.length === 0) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: '用户名或密码错误' });
       return;
     }
 
@@ -71,7 +71,7 @@ router.post('/login', loginLimiter, async (req: Request, res: Response): Promise
     const isPasswordValid = await comparePassword(password, user.password_hash);
 
     if (!isPasswordValid) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: '用户名或密码错误' });
       return;
     }
 

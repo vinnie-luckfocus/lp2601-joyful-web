@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-white font-bold text-sm">JF</span>
               </div>
               <span className="text-xl font-bold text-mlb-navy hidden sm:block">
-                Joyful Web
+                举父棒球联赛
               </span>
             </a>
           </div>
