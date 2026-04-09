@@ -24,30 +24,22 @@ describe('Public API Routes', () => {
   });
 
   describe('GET /api/public/games', () => {
-    it('should return recent games with default limit', async () => {
+    it('should return all games with no limit by default', async () => {
       const mockGames = [
         {
           id: 1,
           scheduled_at: '2026-04-10T14:00:00Z',
           location: 'Stadium A',
-          home_team_id: 1,
-          away_team_id: 2,
-          home_team_name: 'A队',
-          away_team_name: 'B队',
-          home_score: null,
-          away_score: null,
+          home_team: { id: 1, name: 'A队' },
+          away_team: { id: 2, name: 'B队' },
           status: 'scheduled',
         },
         {
           id: 2,
           scheduled_at: '2026-04-11T14:00:00Z',
           location: 'Stadium B',
-          home_team_id: 3,
-          away_team_id: 4,
-          home_team_name: 'C队',
-          away_team_name: 'D队',
-          home_score: null,
-          away_score: null,
+          home_team: { id: 3, name: 'C队' },
+          away_team: { id: 4, name: 'D队' },
           status: 'scheduled',
         },
       ];
@@ -59,8 +51,8 @@ describe('Public API Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toEqual(mockGames);
-      expect(response.body.meta.limit).toBe(4);
-      expect(response.headers['cache-control']).toContain('max-age=300');
+      expect(response.body.meta.total_count).toBe(2);
+      expect(response.headers['cache-control']).toContain('max-age=60');
     });
 
     it('should return games with custom limit', async () => {
@@ -69,12 +61,8 @@ describe('Public API Routes', () => {
           id: 1,
           scheduled_at: '2026-04-10T14:00:00Z',
           location: 'Stadium A',
-          home_team_id: 1,
-          away_team_id: 2,
-          home_team_name: 'A队',
-          away_team_name: 'B队',
-          home_score: null,
-          away_score: null,
+          home_team: { id: 1, name: 'A队' },
+          away_team: { id: 2, name: 'B队' },
           status: 'scheduled',
         },
       ];
@@ -85,7 +73,7 @@ describe('Public API Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data).toHaveLength(1);
-      expect(response.body.meta.limit).toBe(1);
+      expect(response.body.meta.total_count).toBe(1);
     });
 
     it('should reject invalid limit parameter', async () => {
@@ -437,13 +425,17 @@ describe('Public API Routes', () => {
     it('should set Cache-Control for all endpoints', async () => {
       mockQuery.mockResolvedValue({ rows: [] });
 
-      const endpoints = ['/api/public/games', '/api/public/standings', '/api/public/leaders'];
+      const endpoints = ['/api/public/standings', '/api/public/leaders'];
 
       for (const endpoint of endpoints) {
         const response = await request(app).get(endpoint);
         expect(response.headers['cache-control']).toContain('max-age=300');
         expect(response.headers['cache-control']).toContain('public');
       }
+
+      const gamesResponse = await request(app).get('/api/public/games');
+      expect(gamesResponse.headers['cache-control']).toContain('max-age=60');
+      expect(gamesResponse.headers['cache-control']).toContain('public');
     });
   });
 });

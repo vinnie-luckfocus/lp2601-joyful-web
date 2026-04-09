@@ -1,0 +1,9 @@
+{
+  "extends": "../../backend/tsconfig.json",
+  "compilerOptions": {
+    "typeRoots": ["../node_modules/@types", "../../backend/src/types"],
+    "types": ["node", "jest"],
+    "esModuleInterop": true
+  },
+  "include": ["**/*.ts", "../../backend/src/**/*.ts"]
+}

@@ -46,6 +46,21 @@ export interface Game {
   status: string;
 }
 
+export interface ScheduleGame {
+  id: number;
+  scheduled_at: string;
+  location: string;
+  home_team: {
+    id: number;
+    name: string;
+  };
+  away_team: {
+    id: number;
+    name: string;
+  };
+  status: string;
+}
+
 export interface Standing {
   id: number;
   name: string;
@@ -183,6 +198,46 @@ export async function getRecentGames(limit: number = 4): Promise<Game[]> {
     const result = await pool.query<Game>(query, [limit]);
     return result.rows;
   }, 'getRecentGames');
+}
+
+/**
+ * Get all games sorted by scheduled_at ascending
+ */
+export async function getAllGames(limit?: number): Promise<ScheduleGame[]> {
+  if (limit !== undefined) {
+    validateLimit(limit, 50);
+  }
+
+  return withRetry(async () => {
+    let query = `
+      SELECT
+        g.id,
+        g.scheduled_at,
+        g.location,
+        g.status,
+        json_build_object(
+          'id', ht.id,
+          'name', ht.name
+        ) AS home_team,
+        json_build_object(
+          'id', at.id,
+          'name', at.name
+        ) AS away_team
+      FROM games g
+      JOIN teams ht ON g.home_team_id = ht.id
+      JOIN teams at ON g.away_team_id = at.id
+      ORDER BY g.scheduled_at ASC
+    `;
+
+    const params: number[] = [];
+    if (limit !== undefined) {
+      query += ' LIMIT $1';
+      params.push(limit);
+    }
+
+    const result = await pool.query<ScheduleGame>(query, params);
+    return result.rows;
+  }, 'getAllGames');
 }
 
 /**

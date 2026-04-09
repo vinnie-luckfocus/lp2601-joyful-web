@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import {
-  getRecentGames,
+  getAllGames,
   getStandings,
   getLeaders,
   getRecentGameResults,
@@ -17,6 +17,9 @@ const router = Router();
 
 // Cache duration in seconds (5 minutes)
 const CACHE_MAX_AGE = 300;
+
+// Games endpoint cache duration in seconds (1 minute)
+const GAMES_CACHE_MAX_AGE = 60;
 
 // Validation schemas
 const limitSchema = z
@@ -73,7 +76,7 @@ function handleError(res: Response, error: unknown): void {
 
 /**
  * GET /api/public/games
- * Get upcoming/recent games
+ * Get all season games (full schedule)
  */
 router.get(
   '/games',
@@ -91,16 +94,15 @@ router.get(
         return;
       }
 
-      const limit = parseResult.data || 4;
-      const games = await getRecentGames(limit);
+      const limit = parseResult.data;
+      const games = limit !== undefined ? await getAllGames(limit) : await getAllGames();
 
-      setCacheHeaders(res);
+      setCacheHeaders(res, GAMES_CACHE_MAX_AGE);
       res.json({
         success: true,
         data: games,
         meta: {
-          count: games.length,
-          limit,
+          total_count: games.length,
         },
       });
     } catch (error) {
