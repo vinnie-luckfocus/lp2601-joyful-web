@@ -402,6 +402,70 @@ const battingRecordsBodySchema = z.object({
 });
 
 /**
+ * GET /api/games/:id/batting-records
+ * Get batting records for a game (admin only)
+ */
+router.get(
+  '/:id/batting-records',
+  verifyToken,
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const parseId = gameIdSchema.safeParse(req.params.id);
+      if (!parseId.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid gameId format',
+          meta: {},
+        });
+        return;
+      }
+
+      const gameId = parseId.data;
+
+      const recordsResult = await pool.query(
+        `
+          SELECT
+            br.id,
+            br.user_id,
+            u.name AS user_name,
+            br.at_bats,
+            br.hits,
+            br.doubles,
+            br.triples,
+            br.home_runs,
+            br.rbis,
+            br.runs,
+            br.walks,
+            br.strikeouts
+          FROM batting_records br
+          JOIN users u ON br.user_id = u.id
+          WHERE br.game_id = $1
+          ORDER BY u.name ASC
+        `,
+        [gameId]
+      );
+
+      res.json({
+        success: true,
+        data: recordsResult.rows,
+        error: null,
+        meta: {},
+      });
+    } catch (error) {
+      console.error('Failed to fetch batting records:', error);
+      res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Internal server error',
+        meta: {},
+      });
+    }
+  }
+);
+
+/**
  * POST /api/games/:id/batting-records
  * Create or update batting records for a game (admin only)
  */

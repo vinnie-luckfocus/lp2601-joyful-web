@@ -8,6 +8,7 @@ import { SEO } from '../components/seo';
 import { ErrorState } from '../components/common/ErrorState';
 import { Skeleton } from '../components/common/Skeleton';
 import { AttendanceButtons } from '../components/games/AttendanceButtons';
+import { BattingRecordEntry } from '../components/games/BattingRecordEntry';
 import { useAttendance, AttendanceStatus } from '../hooks/useAttendance';
 import { useAuthStore } from '../stores/auth';
 import api from '../utils/axios';
@@ -338,6 +339,13 @@ export const GameDetailPage: React.FC = () => {
                   查看战术板
                 </a>
               </div>
+
+              {/* Admin: Batting Record Entry */}
+              {user?.role === 'admin' && (
+                <div className="mt-6">
+                  <BattingRecordEntry gameId={gameId} />
+                </div>
+              )}
             </motion.div>
           ) : (
             <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
