@@ -6,8 +6,6 @@ interface User {
   username: string;
   name: string;
   role: string;
-  team_id: number | null;
-  is_first_login: boolean;
 }
 
 interface AuthState {

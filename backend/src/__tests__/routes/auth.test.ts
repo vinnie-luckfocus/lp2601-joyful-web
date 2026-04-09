@@ -20,7 +20,7 @@ import { hashPassword } from '../../utils/password';
 import { generateToken } from '../../middleware/auth';
 
 describe('Auth Routes', () => {
-  const mockUserBase = {
+  const mockUser = {
     id: 1,
     username: 'testuser',
     name: 'Test User',
@@ -29,16 +29,10 @@ describe('Auth Routes', () => {
     jersey_number: null,
     position: null,
     password_hash: '',
-    is_first_login: true,
   };
 
-  let mockUser: typeof mockUserBase;
-
   beforeAll(async () => {
-    mockUser = {
-      ...mockUserBase,
-      password_hash: await hashPassword('testpass123'),
-    };
+    mockUser.password_hash = await hashPassword('testpass123');
   });
 
   beforeEach(() => {
@@ -61,11 +55,8 @@ describe('Auth Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.token).toBeDefined();
       expect(response.body.user).toBeDefined();
-      expect(response.body.user.id).toBe(1);
       expect(response.body.user.name).toBe('Test User');
-      expect(response.body.user.team_id).toBeNull();
       expect(response.body.user.role).toBe('admin');
-      expect(response.body.user.is_first_login).toBe(true);
     });
 
     it('should reject invalid username', async () => {
