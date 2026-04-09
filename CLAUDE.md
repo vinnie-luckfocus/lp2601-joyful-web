@@ -252,6 +252,34 @@ lp2601-joyful-web/
 
 ---
 
+## Project Rules Reference
+
+The following rules are enforced in this project. Refer to `.claude/rules/` for full details:
+
+### Development Operations
+- **`standard-patterns.md`** - Fail fast, minimal validation, concise output, smart defaults
+- **`worktree-operations.md`** - Epic worktrees from clean main, commit format `Issue #{number}: {description}`
+- **`branch-operations.md`** - Branch per epic, `epic/{name}` naming, pull before push
+- **`agent-coordination.md`** - File-level parallelism, atomic commits, human conflict resolution
+
+### Code Quality
+- **`test-execution.md`** - Use test-runner agent, no mocking, verbose output, analyze test structure first
+- **`use-ast-grep.md`** - Prefer ast-grep for structural code search over regex when available
+- **`path-standards.md`** - No absolute paths with usernames in docs, use relative paths
+
+### GitHub & Documentation
+- **`github-operations.md`** - ALWAYS check remote origin before write ops (protect against CCPM template repo)
+- **`frontmatter-operations.md`** - Preserve created field, update updated field on changes
+- **`strip-frontmatter.md`** - Remove YAML frontmatter before posting to GitHub
+- **`datetime.md`** - Use `date -u +"%Y-%m-%dT%H:%M:%SZ"` for all timestamps, never placeholders
+
+### Language-Specific Rules
+- **`common/`** - Universal coding style, testing, security, performance, patterns
+- **`typescript/`** - TypeScript/JavaScript specific extensions
+- **`python/`**, **`golang/`**, **`swift/`** - Language-specific rules as applicable
+
+---
+
 ## Tech Stack
 
 ### Frontend
