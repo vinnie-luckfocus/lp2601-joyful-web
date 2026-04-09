@@ -4,8 +4,8 @@ status: backlog
 created: 2026-04-09T09:09:32Z
 progress: 0%
 prd: .claude/prds/04-game-schedule.md
-github: [Will be updated when synced to GitHub]
-updated: 2026-04-09T09:41:06Z
+github: https://github.com/vinnie-luckfocus/lp2601-joyful-web/issues/33
+updated: 2026-04-09T10:03:18Z
 ---
 
 # Epic: Game Schedule
@@ -106,18 +106,18 @@ Build a game schedule management system that displays all season games publicly 
 
 ## Tasks Created
 
-- [ ] 001.md - Create games and game_attendance tables with seed data (parallel: true)
-- [ ] 002.md - Extend public API for full schedule (parallel: true)
-- [ ] 003.md - Implement protected game list and detail endpoints (parallel: true)
-- [ ] 004.md - Implement attendance API with cutoff and concurrency safety (parallel: true)
-- [ ] 005.md - Register new backend routes in app router (parallel: true)
-- [ ] 008.md - Refactor GameCard and build ScheduleGameCard (parallel: false)
-- [ ] 006.md - Build frontend hooks and GameSchedulePage (parallel: true)
-- [ ] 007.md - Build GameDetailPage with attendance sections and animations (parallel: true)
-- [ ] 011.md - Add React Router routes for schedule pages (parallel: true)
-- [ ] 012.md - Add Navbar and menu entry for schedule (parallel: true)
-- [ ] 009.md - Write frontend unit and component tests (parallel: true)
-- [ ] 010.md - Write E2E tests for critical schedule flows (parallel: true)
+- [ ] #46 - Create games and game_attendance tables with seed data (parallel: true)
+- [ ] #35 - Extend public API for full schedule (parallel: true)
+- [ ] #36 - Implement protected game list and detail endpoints (parallel: true)
+- [ ] #37 - Implement attendance API with cutoff and concurrency safety (parallel: true)
+- [ ] #38 - Register new backend routes in app router (parallel: true)
+- [ ] #41 - Refactor GameCard and build ScheduleGameCard (parallel: false)
+- [ ] #39 - Build frontend hooks and GameSchedulePage (parallel: true)
+- [ ] #40 - Build GameDetailPage with attendance sections and animations (parallel: true)
+- [ ] #44 - Add React Router routes for schedule pages (parallel: true)
+- [ ] #45 - Add Navbar and menu entry for schedule (parallel: true)
+- [ ] #42 - Write frontend unit and component tests (parallel: true)
+- [ ] #43 - Write E2E tests for critical schedule flows (parallel: true)
 
 Total tasks: 12
 Parallel tasks: 11
