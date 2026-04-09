@@ -186,7 +186,15 @@ export const GameDetailPage: React.FC = () => {
 
       <main className="flex-1 py-8 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {isLoading && !game ? (
+          {Number.isNaN(gameId) ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm text-center">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">比赛未找到</h2>
+              <p className="text-gray-500 mb-6">链接中的比赛 ID 无效，请检查网址是否正确。</p>
+              <a href="/schedule" className="inline-block px-5 py-2 bg-[#BF0D3E] text-white rounded-lg hover:bg-[#A00B34] transition-colors">
+                返回赛程
+              </a>
+            </div>
+          ) : isLoading && !game ? (
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
               <Skeleton width="40%" height="20px" borderRadius="4px" />
               <Skeleton width="60%" height="16px" borderRadius="4px" />
