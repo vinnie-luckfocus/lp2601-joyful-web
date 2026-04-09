@@ -1,0 +1,17 @@
+{
+  "status": "running",
+  "phase": "2",
+  "current_epic": "04-game-schedule",
+  "resume_epic": "04-game-schedule",
+  "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication"],
+  "skipped_epics": [],
+  "needs_review": [],
+  "options": {
+    "max_fix_rounds": 3,
+    "auto_merge": true,
+    "skip_epic": false,
+    "dry_run": false
+  },
+  "started_at": "2026-04-09T12:35:47Z",
+  "updated_at": "2026-04-09T12:35:47Z"
+}
