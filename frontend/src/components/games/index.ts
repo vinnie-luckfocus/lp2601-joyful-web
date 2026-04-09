@@ -1,4 +1,12 @@
 export { GameCard } from './GameCard';
 export { GameGrid } from './GameGrid';
+export { GameCardMeta } from './GameCardMeta';
+export { GameCardTeams } from './GameCardTeams';
+export { GameCardFooter } from './GameCardFooter';
+export { ScheduleGameCard } from './ScheduleGameCard';
 export type { GameCardProps } from './GameCard';
 export type { GameGridProps } from './GameGrid';
+export type { GameCardMetaProps } from './GameCardMeta';
+export type { GameCardTeamsProps } from './GameCardTeams';
+export type { GameCardFooterProps } from './GameCardFooter';
+export type { ScheduleGameCardProps } from './ScheduleGameCard';
