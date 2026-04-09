@@ -181,8 +181,8 @@ async function insertPlayers(players, teamId, teamName) {
     const passwordHash = await hashPassword(player.jersey_number.toString());
 
     await client.query(
-      `INSERT INTO users (username, password_hash, name, team_id, jersey_number, position, role, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      `INSERT INTO users (username, password_hash, name, team_id, jersey_number, position, role, status, is_first_login)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         player.username,
         passwordHash,
@@ -191,7 +191,8 @@ async function insertPlayers(players, teamId, teamName) {
         player.jersey_number,
         player.position,
         'player',
-        'active'
+        'active',
+        true
       ]
     );
     console.log(`  - ${player.name} (#${player.jersey_number}, ${player.position})`);
@@ -230,14 +231,15 @@ async function insertAdmin() {
   const passwordHash = await hashPassword(adminUser.password);
 
   await client.query(
-    `INSERT INTO users (username, password_hash, name, role, status)
-     VALUES ($1, $2, $3, $4, $5)`,
+    `INSERT INTO users (username, password_hash, name, role, status, is_first_login)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [
       adminUser.username,
       passwordHash,
       adminUser.name,
       adminUser.role,
-      'active'
+      'active',
+      true
     ]
   );
 
@@ -330,12 +332,8 @@ async function run() {
     console.log(`Players: ${stats.players} (10 per team)`);
     console.log(`Games: ${stats.games} (4 weeks schedule)`);
     console.log(`Admin: ${stats.admins}`);
-    console.log('\nAdmin login:');
-    console.log('  Username: admin');
-    console.log('  Password: admin123');
-    console.log('\nPlayer login:');
-    console.log('  Username: player_XX (XX = jersey number)');
-    console.log('  Password: XX (jersey number)');
+    console.log('\nSeed data summary complete.');
+    console.log('  Use admin username to log in and complete first-login password change.');
 
   } catch (err) {
     // Rollback on error

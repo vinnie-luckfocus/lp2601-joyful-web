@@ -20,7 +20,7 @@ import { hashPassword } from '../../utils/password';
 import { generateToken } from '../../middleware/auth';
 
 describe('Auth Routes', () => {
-  const mockUser = {
+  const mockUserBase = Object.freeze({
     id: 1,
     username: 'testuser',
     name: 'Test User',
@@ -28,11 +28,17 @@ describe('Auth Routes', () => {
     team_id: null,
     jersey_number: null,
     position: null,
-    password_hash: '',
-  };
+    password_hash: '' as string,
+    is_first_login: true,
+  });
+
+  let mockUser: Readonly<typeof mockUserBase>;
 
   beforeAll(async () => {
-    mockUser.password_hash = await hashPassword('testpass123');
+    mockUser = Object.freeze({
+      ...mockUserBase,
+      password_hash: await hashPassword('testpass123'),
+    });
   });
 
   beforeEach(() => {
@@ -45,18 +51,24 @@ describe('Auth Routes', () => {
         rows: [mockUser],
       });
 
+      const start = Date.now();
       const response = await request(app)
         .post('/api/auth/login')
         .send({
           username: 'testuser',
           password: 'testpass123',
         });
+      const duration = Date.now() - start;
 
       expect(response.status).toBe(200);
       expect(response.body.token).toBeDefined();
       expect(response.body.user).toBeDefined();
+      expect(response.body.user.id).toBe(1);
       expect(response.body.user.name).toBe('Test User');
+      expect(response.body.user.team_id).toBeNull();
       expect(response.body.user.role).toBe('admin');
+      expect(response.body.user.is_first_login).toBe(true);
+      expect(duration).toBeLessThan(500);
     });
 
     it('should reject invalid username', async () => {
@@ -72,7 +84,7 @@ describe('Auth Routes', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Invalid credentials');
+      expect(response.body.error).toBe('用户名或密码错误');
     });
 
     it('should reject invalid password', async () => {
@@ -88,7 +100,7 @@ describe('Auth Routes', () => {
         });
 
       expect(response.status).toBe(401);
-      expect(response.body.error).toBe('Invalid credentials');
+      expect(response.body.error).toBe('用户名或密码错误');
     });
 
     it('should reject short username', async () => {
@@ -138,6 +150,110 @@ describe('Auth Routes', () => {
       const response = await request(app)
         .get('/api/auth/me')
         .set('Authorization', 'Bearer invalid-token');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return user profile with valid token', async () => {
+      const token = generateToken('1', 'admin');
+
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rows: [mockUser],
+      });
+
+      const response = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.id).toBe(1);
+      expect(response.body.username).toBe('testuser');
+      expect(response.body.name).toBe('Test User');
+      expect(response.body.role).toBe('admin');
+      expect(response.body.team_id).toBeNull();
+    });
+  });
+
+  describe('POST /api/auth/change-password', () => {
+    it('should change password with valid old password', async () => {
+      const token = generateToken('1', 'admin');
+
+      (pool.query as jest.Mock)
+        .mockResolvedValueOnce({
+          rows: [{ id: 1, password_hash: mockUser.password_hash }],
+        })
+        .mockResolvedValueOnce({
+          rows: [],
+        });
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: 'newsecurepass',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should reject invalid old password', async () => {
+      const token = generateToken('1', 'admin');
+
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rows: [{ id: 1, password_hash: mockUser.password_hash }],
+      });
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'wrongpassword',
+          new_password: 'newsecurepass',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Invalid current password');
+    });
+
+    it('should reject short new password', async () => {
+      const token = generateToken('1', 'admin');
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: 'short',
+        });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject new password exceeding 72 bytes', async () => {
+      const token = generateToken('1', 'admin');
+
+      const longPassword = 'a'.repeat(80);
+
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          old_password: 'testpass123',
+          new_password: longPassword,
+        });
+
+      expect(response.status).toBe(400);
+    });
+
+    it('should reject request without token', async () => {
+      const response = await request(app)
+        .post('/api/auth/change-password')
+        .send({
+          old_password: 'testpass123',
+          new_password: 'newsecurepass',
+        });
 
       expect(response.status).toBe(401);
     });

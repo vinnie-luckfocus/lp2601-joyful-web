@@ -42,7 +42,7 @@ describe('Navbar', () => {
 
   it('applies custom className', () => {
     render(<Navbar className="custom-navbar" />);
-    expect(screen.getByRole('navigation')).toHaveClass('custom-navbar');
+    expect(screen.getAllByRole('navigation')[0]).toHaveClass('custom-navbar');
   });
 
   it('renders mobile menu button', () => {

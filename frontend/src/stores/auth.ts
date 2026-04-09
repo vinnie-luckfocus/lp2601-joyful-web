@@ -6,6 +6,8 @@ interface User {
   username: string;
   name: string;
   role: string;
+  team_id: number | null;
+  is_first_login: boolean;
 }
 
 interface AuthState {
@@ -16,6 +18,7 @@ interface AuthState {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  changePassword: (old_password: string, new_password: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -58,7 +61,26 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       localStorage.removeItem('token');
       set({ user: null, isAuthenticated: false, isLoading: false });
-      console.error('Auth check failed:', error);
+    }
+  },
+
+  changePassword: async (old_password, new_password) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.post('/auth/change-password', { old_password, new_password });
+      localStorage.removeItem('token');
+      set({ user: null, isAuthenticated: false, isLoading: false });
+    } catch (error) {
+      const axiosError = error as { response?: { status?: number; data?: { error?: string } } };
+      const message = axiosError.response?.data?.error || 'Password change failed';
+      set({ error: message, isLoading: false });
+
+      if (axiosError.response?.status === 401) {
+        localStorage.removeItem('token');
+        set({ user: null, isAuthenticated: false });
+      }
+
+      throw error;
     }
   },
 }));

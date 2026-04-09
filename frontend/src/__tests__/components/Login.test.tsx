@@ -1,109 +1,33 @@
 /**
  * Login Component Tests
- * Tests login form validation and submission
- * Coverage: PRD01 - Login functionality
+ * Tests redirect behavior for deep-link fallback
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Login from '../../pages/Login';
 
-const mockLogin = vi.fn();
-const mockUseAuthStore = vi.fn(() => ({
-  login: mockLogin,
-  isLoading: false,
-  error: null,
-}));
+const mockNavigate = vi.fn();
 
-vi.mock('../../stores/auth', () => ({
-  useAuthStore: () => mockUseAuthStore(),
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...(actual as object),
+    useNavigate: () => mockNavigate,
+  };
+});
 
 describe('Login Component', () => {
-  it('should render login form', () => {
+  it('redirects to homepage with login modal open', async () => {
     render(
       <MemoryRouter>
         <Login />
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Admin Login')).toBeInTheDocument();
-    expect(screen.getByLabelText('Username')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
-  });
-
-  it('should have input fields with correct attributes', () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
-
-    const usernameInput = screen.getByLabelText('Username') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
-
-    expect(usernameInput.type).toBe('text');
-    expect(usernameInput.required).toBe(true);
-    expect(passwordInput.type).toBe('password');
-    expect(passwordInput.required).toBe(true);
-  });
-
-  it('should disable submit button when loading', () => {
-    mockUseAuthStore.mockReturnValueOnce({
-      login: mockLogin,
-      isLoading: true,
-      error: null,
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/?login=true', { replace: true });
     });
-
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
-
-    const submitButton = screen.getByRole('button', { name: /Signing in/i });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it('should display error message from store', () => {
-    mockUseAuthStore.mockReturnValueOnce({
-      login: mockLogin,
-      isLoading: false,
-      error: 'Invalid credentials',
-    });
-
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
-  });
-
-  it('should apply MLB Navy theme to logo', () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
-
-    // Find the logo container by class
-    const logoDiv = document.querySelector('.bg-mlb-navy');
-    expect(logoDiv).toBeInTheDocument();
-  });
-
-  it('should update username input value', () => {
-    render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    );
-
-    const usernameInput = screen.getByLabelText('Username') as HTMLInputElement;
-    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-    expect(usernameInput.value).toBe('testuser');
   });
 });
