@@ -7,6 +7,7 @@ import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { verifyToken } from '../middleware/auth';
+import { requireAdmin } from '../middleware/admin';
 import { getGames, getGameById, updateAttendance, getAttendance } from '../services/games';
 import pool from '../config/database';
 
@@ -373,6 +374,115 @@ router.get(
       });
     } catch (error) {
       console.error('Failed to fetch lineup:', error);
+      res.status(500).json({
+        success: false,
+        data: null,
+        error: 'Internal server error',
+        meta: {},
+      });
+    }
+  }
+);
+
+const battingRecordSchema = z.object({
+  user_id: z.number().int().positive(),
+  at_bats: z.number().int().min(0).default(0),
+  hits: z.number().int().min(0).default(0),
+  doubles: z.number().int().min(0).default(0),
+  triples: z.number().int().min(0).default(0),
+  home_runs: z.number().int().min(0).default(0),
+  rbis: z.number().int().min(0).default(0),
+  runs: z.number().int().min(0).default(0),
+  walks: z.number().int().min(0).default(0),
+  strikeouts: z.number().int().min(0).default(0),
+});
+
+const battingRecordsBodySchema = z.object({
+  records: z.array(battingRecordSchema).min(1),
+});
+
+/**
+ * POST /api/games/:id/batting-records
+ * Create or update batting records for a game (admin only)
+ */
+router.post(
+  '/:id/batting-records',
+  verifyToken,
+  requireAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const parseId = gameIdSchema.safeParse(req.params.id);
+      if (!parseId.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid gameId format',
+          meta: {},
+        });
+        return;
+      }
+
+      const parseBody = battingRecordsBodySchema.safeParse(req.body);
+      if (!parseBody.success) {
+        res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Invalid request body',
+          meta: {},
+        });
+        return;
+      }
+
+      const gameId = parseId.data;
+      const { records } = parseBody.data;
+      const recordIds: number[] = [];
+
+      for (const record of records) {
+        const result = await pool.query(
+          `
+            INSERT INTO batting_records (
+              game_id, user_id, at_bats, hits, doubles, triples, home_runs, rbis, runs, walks, strikeouts
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (game_id, user_id)
+            DO UPDATE SET
+              at_bats = EXCLUDED.at_bats,
+              hits = EXCLUDED.hits,
+              doubles = EXCLUDED.doubles,
+              triples = EXCLUDED.triples,
+              home_runs = EXCLUDED.home_runs,
+              rbis = EXCLUDED.rbis,
+              runs = EXCLUDED.runs,
+              walks = EXCLUDED.walks,
+              strikeouts = EXCLUDED.strikeouts,
+              updated_at = NOW()
+            RETURNING id
+          `,
+          [
+            gameId,
+            record.user_id,
+            record.at_bats,
+            record.hits,
+            record.doubles,
+            record.triples,
+            record.home_runs,
+            record.rbis,
+            record.runs,
+            record.walks,
+            record.strikeouts,
+          ]
+        );
+        recordIds.push(result.rows[0].id);
+      }
+
+      res.status(201).json({
+        success: true,
+        data: { recordIds },
+        error: null,
+        meta: {},
+      });
+    } catch (error) {
+      console.error('Failed to create batting records:', error);
       res.status(500).json({
         success: false,
         data: null,
