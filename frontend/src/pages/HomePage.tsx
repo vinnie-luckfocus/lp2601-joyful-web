@@ -21,7 +21,7 @@ export const HomePage: React.FC = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [searchParams] = useSearchParams();
 
-  const { isAuthenticated, user, checkAuth } = useAuthStore();
+  const { isAuthenticated, user, checkAuth, logout } = useAuthStore();
 
   useEffect(() => {
     // Deep-link fallback: open login modal if ?login=true
@@ -89,6 +89,7 @@ export const HomePage: React.FC = () => {
 
       <Navbar
         onLoginClick={handleLoginClick}
+        onLogout={logout}
         isLoggedIn={isAuthenticated}
         userName={user?.name}
       />

@@ -5,6 +5,7 @@ import { Button } from '../common/Button';
 
 export interface NavbarProps {
   onLoginClick?: () => void;
+  onLogout?: () => void;
   isLoggedIn?: boolean;
   userName?: string;
   className?: string;
@@ -12,6 +13,7 @@ export interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   onLoginClick,
+  onLogout,
   isLoggedIn = false,
   userName,
   className = '',
@@ -55,16 +57,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Login/User Section */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-3">
             {isLoggedIn ? (
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-mlb-navy flex items-center justify-center">
-                  <User size={16} className="text-white" />
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-mlb-navy flex items-center justify-center">
+                    <User size={16} className="text-white" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {userName || '用户'}
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {userName || '用户'}
-                </span>
-              </div>
+                <Button
+                  onClick={onLogout}
+                  variant="ghost"
+                  className="text-gray-600 hover:text-mlb-red"
+                >
+                  退出
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={onLoginClick}
@@ -118,14 +129,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               ))}
               <div className="pt-4 border-t border-gray-200 mt-4">
                 {isLoggedIn ? (
-                  <div className="flex items-center gap-3 px-3 py-2">
-                    <div className="w-8 h-8 rounded-full bg-mlb-navy flex items-center justify-center">
-                      <User size={16} className="text-white" />
+                  <>
+                    <div className="flex items-center gap-3 px-3 py-2">
+                      <div className="w-8 h-8 rounded-full bg-mlb-navy flex items-center justify-center">
+                        <User size={16} className="text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {userName || '用户'}
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
-                      {userName || '用户'}
-                    </span>
-                  </div>
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onLogout?.();
+                      }}
+                      className="w-full text-left px-3 py-2 text-gray-600 hover:text-mlb-red hover:bg-gray-50 rounded-md font-medium"
+                    >
+                      退出
+                    </button>
+                  </>
                 ) : (
                   <Button
                     onClick={() => {
