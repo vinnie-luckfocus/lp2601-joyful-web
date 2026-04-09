@@ -110,6 +110,8 @@ async function clearData() {
   await client.query('DELETE FROM video_highlights');
   await client.query('DELETE FROM videos');
   await client.query('DELETE FROM batting_records');
+  await client.query('DELETE FROM game_lineups');
+  await client.query('DELETE FROM game_tactics');
   await client.query('DELETE FROM game_attendance');
   await client.query('DELETE FROM games');
   await client.query('DELETE FROM users');
@@ -131,7 +133,9 @@ async function resetSequences() {
     'game_attendance_id_seq',
     'batting_records_id_seq',
     'videos_id_seq',
-    'video_highlights_id_seq'
+    'video_highlights_id_seq',
+    'game_tactics_id_seq',
+    'game_lineups_id_seq'
   ];
 
   for (const seq of sequences) {
@@ -350,6 +354,54 @@ async function insertAttendance(gameIds, playerIds) {
 }
 
 /**
+ * Insert lineup and tactics for the first scheduled game
+ * @param {number} gameId - Game ID
+ * @param {Array} playerIds - Array of player user IDs for the home team
+ */
+async function insertLineupAndTactics(gameId, playerIds) {
+  console.log('Inserting lineup and tactics...');
+
+  const positions = [
+    { pos: '投手', abbr: 'P' },
+    { pos: '捕手', abbr: 'C' },
+    { pos: '一垒手', abbr: '1B' },
+    { pos: '二垒手', abbr: '2B' },
+    { pos: '三垒手', abbr: '3B' },
+    { pos: '游击手', abbr: 'SS' },
+    { pos: '左外野', abbr: 'LF' },
+    { pos: '中外野', abbr: 'CF' },
+    { pos: '右外野', abbr: 'RF' }
+  ];
+
+  for (let i = 0; i < 9; i++) {
+    const player = playerIds[i];
+    if (!player) continue;
+    await client.query(
+      `INSERT INTO game_lineups (game_id, user_id, batting_order, position, jersey_number)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [gameId, player, i + 1, positions[i].pos, (i + 1).toString()]
+    );
+  }
+
+  await client.query(
+    `INSERT INTO game_tactics (game_id, general_notes, signals, defense_strategy)
+     VALUES ($1, $2, $3, $4)`,
+    [
+      gameId,
+      '本场比赛重点防守对方强打者，游击手需要后撤防守深区。投手配球以外角球为主。',
+      JSON.stringify({
+        steal: '双触耳表示盗垒',
+        bunt: '摸帽檐表示牺牲触击',
+        hit_run: '拉腰带表示打带跑'
+      }),
+      '内野守备采用标准站位，双杀时二垒手优先覆盖垒包。外野手向左靠拢，因为对方左打者较多。'
+    ]
+  );
+
+  console.log(`  - Created 9 lineup records and tactics for game ${gameId}`);
+}
+
+/**
  * Verify seed data was created correctly
  */
 async function verifyData() {
@@ -360,12 +412,16 @@ async function verifyData() {
   const adminCount = await client.query('SELECT COUNT(*) FROM users WHERE role = $1', ['admin']);
   const gameCount = await client.query('SELECT COUNT(*) FROM games');
   const attendanceCount = await client.query('SELECT COUNT(*) FROM game_attendance');
+  const lineupCount = await client.query('SELECT COUNT(*) FROM game_lineups');
+  const tacticsCount = await client.query('SELECT COUNT(*) FROM game_tactics');
 
   console.log(`  - Teams: ${teamCount.rows[0].count}`);
   console.log(`  - Players: ${playerCount.rows[0].count}`);
   console.log(`  - Admins: ${adminCount.rows[0].count}`);
   console.log(`  - Games: ${gameCount.rows[0].count}`);
   console.log(`  - Attendance: ${attendanceCount.rows[0].count}`);
+  console.log(`  - Lineups: ${lineupCount.rows[0].count}`);
+  console.log(`  - Tactics: ${tacticsCount.rows[0].count}`);
 
   // Verify team assignments
   const teamAPlayers = await client.query(
@@ -385,7 +441,9 @@ async function verifyData() {
     players: parseInt(playerCount.rows[0].count),
     admins: parseInt(adminCount.rows[0].count),
     games: parseInt(gameCount.rows[0].count),
-    attendance: parseInt(attendanceCount.rows[0].count)
+    attendance: parseInt(attendanceCount.rows[0].count),
+    lineups: parseInt(lineupCount.rows[0].count),
+    tactics: parseInt(tacticsCount.rows[0].count)
   };
 }
 
@@ -435,6 +493,11 @@ async function run() {
     // Insert attendance records for all players on all scheduled games
     await insertAttendance(gameIds, [...playerIds, e2eUserId]);
 
+    // Insert lineup and tactics for the first scheduled game
+    if (gameIds.length > 0) {
+      await insertLineupAndTactics(gameIds[0], teamAUserIds.slice(0, 9));
+    }
+
     // Insert admin
     await insertAdmin();
 
@@ -449,8 +512,10 @@ async function run() {
     console.log('========================================');
     console.log(`Teams: ${stats.teams}`);
     console.log(`Players: ${stats.players} (10 per team)`);
-    console.log(`Games: ${stats.games} (10 weeks schedule)`);
+    console.log(`Games: ${stats.games}`);
     console.log(`Attendance: ${stats.attendance}`);
+    console.log(`Lineups: ${stats.lineups}`);
+    console.log(`Tactics: ${stats.tactics}`);
     console.log(`Admin: ${stats.admins}`);
     console.log('\nSeed data summary complete.');
     console.log('  Use admin username to log in and complete first-login password change.');

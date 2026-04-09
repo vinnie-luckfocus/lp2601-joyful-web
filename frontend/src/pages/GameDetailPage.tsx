@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Shield, Check, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Shield, Check, AlertCircle, ClipboardList } from 'lucide-react';
 import { Navbar } from '../components/Layout/Navbar';
 import { Footer } from '../components/Layout/Footer';
 import { SEO } from '../components/seo';
@@ -327,6 +327,17 @@ export const GameDetailPage: React.FC = () => {
                   isLoading={attendanceLoading}
                 />
               </motion.div>
+
+              {/* Tactics Board Link */}
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <a
+                  href={`/games/${gameId}/tactics`}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-[#041E42] text-white hover:bg-[#061B3A] transition-colors text-sm font-medium"
+                >
+                  <ClipboardList size={18} />
+                  查看战术板
+                </a>
+              </div>
             </motion.div>
           ) : (
             <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-200">
