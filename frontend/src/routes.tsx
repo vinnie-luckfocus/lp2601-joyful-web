@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
-import Home from './pages/Home'
+import HomePage from './pages/HomePage'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
 import Teams from './pages/Admin/Teams'
@@ -7,13 +7,22 @@ import Players from './pages/Admin/Players'
 import Games from './pages/Admin/Games'
 import Stats from './pages/Admin/Stats'
 import Videos from './pages/Admin/Videos'
+import ComingSoon from './pages/ComingSoon'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/teams" element={<ComingSoon />} />
+      <Route path="/players" element={<ComingSoon />} />
+      <Route path="/schedule" element={<ComingSoon />} />
+      <Route path="/help" element={<ComingSoon />} />
+      <Route path="/contact" element={<ComingSoon />} />
+      <Route path="/about" element={<ComingSoon />} />
+      <Route path="/privacy" element={<ComingSoon />} />
+      <Route path="/terms" element={<ComingSoon />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/admin" element={<Admin />} />
         <Route path="/admin/teams" element={<Teams />} />

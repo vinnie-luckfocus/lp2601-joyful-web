@@ -1,0 +1,45 @@
+---
+issue: 18
+name: "006: 数据排行榜模块"
+status: open
+created: 2026-04-08T06:14:45Z
+updated: 2026-04-08T06:43:22Z
+effort: 14h
+parallel: true
+depends_on: [13, 14]
+---
+
+# 006: 数据排行榜模块
+
+## Description
+
+开发数据排行榜模块，支持Tab切换、计数动画
+
+## Acceptance Criteria
+
+1. Tab切换：打击率/安打/本垒打/打点Top10
+2. 显示球员名、球队、数值、排名
+3. 数字从0计数动画到实际值（800ms）
+4. 前三名金色标识
+5. 链接使用信息蓝（#3182CE）
+6. 响应式布局
+7. 数据时效提示
+
+## Technical Details
+
+- File: src/components/leaders/Leaderboard.tsx
+- 使用useLeaders hook
+- Framer Motion CountUp动画组件
+- Tab使用状态管理
+
+## Dependencies
+
+- Issue #13: 基础布局与主题配置
+- Issue #14: 公开API接口设计
+
+## Definition of Done
+
+- [ ] Tab切换功能正常
+- [ ] 计数动画流畅
+- [ ] 前三名金色标识正确
+- [ ] 响应式布局适配
