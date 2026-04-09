@@ -50,6 +50,9 @@ describe('Games Routes', () => {
     );
     teamBId = teamBResult.rows[0].id;
 
+    // Assign player to team A so they can access lineup
+    await pool.query('UPDATE users SET team_id = $1 WHERE id = $2', [teamAId, playerUserId]);
+
     // Create a test game
     const gameResult = await pool.query(
       `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status)
@@ -382,6 +385,82 @@ describe('Games Routes', () => {
 
       await pool.query('DELETE FROM game_attendance WHERE user_id = $1', [freshUserId]);
       await pool.query('DELETE FROM users WHERE username = $1', ['gameroutes_fresh']);
+    });
+  });
+
+  describe('GET /api/games/:id/lineup', () => {
+    it('should return 401 without token', async () => {
+      const response = await request(app).get(`/api/games/${gameId}/lineup`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return lineup and tactics for team member', async () => {
+      // Insert lineup and tactics for the test game
+      await pool.query(
+        `INSERT INTO game_lineups (game_id, user_id, batting_order, position, jersey_number)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [gameId, playerUserId, 1, '投手', '1']
+      );
+      await pool.query(
+        `INSERT INTO game_tactics (game_id, general_notes, signals, defense_strategy)
+         VALUES ($1, $2, $3, $4)`,
+        [gameId, 'Test notes', JSON.stringify({ test: 'signal' }), 'Test strategy']
+      );
+
+      const response = await request(app)
+        .get(`/api/games/${gameId}/lineup`)
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.game_id).toBe(gameId);
+      expect(Array.isArray(response.body.data.lineup)).toBe(true);
+      expect(response.body.data.lineup[0].batting_order).toBe(1);
+      expect(response.body.data.lineup[0].position).toBe('投手');
+      expect(response.body.data.tactics.general_notes).toBe('Test notes');
+
+      // Cleanup
+      await pool.query('DELETE FROM game_lineups WHERE game_id = $1', [gameId]);
+      await pool.query('DELETE FROM game_tactics WHERE game_id = $1', [gameId]);
+    });
+
+    it('should return 404 for non-existent game', async () => {
+      const response = await request(app)
+        .get('/api/games/999999/lineup')
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 403 for user not on either team', async () => {
+      // Create a user without a team
+      const passwordHash = await hashPassword('orphanpass');
+      const orphanResult = await pool.query(
+        `INSERT INTO users (username, password_hash, name, role, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        ['gameroutes_orphan', passwordHash, 'Orphan Player', 'player', 'active']
+      );
+      const orphanId = orphanResult.rows[0].id.toString();
+      const orphanToken = generateToken(orphanId, 'player');
+
+      const response = await request(app)
+        .get(`/api/games/${gameId}/lineup`)
+        .set('Authorization', `Bearer ${orphanToken}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.success).toBe(false);
+
+      await pool.query('DELETE FROM users WHERE username = $1', ['gameroutes_orphan']);
+    });
+
+    it('should return 400 for invalid gameId', async () => {
+      const response = await request(app)
+        .get('/api/games/abc/lineup')
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
     });
   });
 });
