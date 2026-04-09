@@ -9,15 +9,33 @@ import { HeroSection } from '../components/hero/HeroSection';
 import { GameGrid } from '../components/games/GameGrid';
 import { RecentGames } from '../components/games/RecentGames';
 import { StatsSection } from '../components/stats/StatsSection';
-import { useState } from 'react';
+import { LoginModal } from '../components/LoginModal';
+import { useState, useEffect } from 'react';
 import { Trophy, Users, Calendar, TrendingUp } from 'lucide-react';
+import { useAuthStore } from '../stores/auth';
+import { useSearchParams } from 'react-router-dom';
 
 export const HomePage: React.FC = () => {
   const [showError, setShowError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const { isAuthenticated, user, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    // Deep-link fallback: open login modal if ?login=true
+    if (searchParams.get('login') === 'true') {
+      setIsLoginModalOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const handleLoginClick = () => {
-    window.location.href = '/login';
+    setIsLoginModalOpen(true);
   };
 
   const handleRetry = () => {
@@ -69,7 +87,11 @@ export const HomePage: React.FC = () => {
         structuredData={structuredData}
       />
 
-      <Navbar onLoginClick={handleLoginClick} />
+      <Navbar
+        onLoginClick={handleLoginClick}
+        isLoggedIn={isAuthenticated}
+        userName={user?.name}
+      />
 
       <main className="flex-1" role="main">
         {/* Hero Section */}
@@ -218,6 +240,8 @@ export const HomePage: React.FC = () => {
       </main>
 
       <Footer />
+
+      <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
     </div>
   );
 };

@@ -1,24 +1,57 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { HomePage } from '../../pages/HomePage';
 
+const AllProviders = ({ children }: { children: React.ReactNode }) => (
+  <HelmetProvider>
+    <MemoryRouter>{children}</MemoryRouter>
+  </HelmetProvider>
+);
+
+const mockCheckAuth = vi.fn();
+const mockUseAuthStore = vi.fn(() => ({
+  isAuthenticated: false,
+  user: null,
+  checkAuth: mockCheckAuth,
+}));
+
+vi.mock('../../stores/auth', () => ({
+  useAuthStore: (...args: unknown[]) => mockUseAuthStore(...args),
+}));
+
 describe('HomePage', () => {
+  beforeEach(() => {
+    mockCheckAuth.mockClear();
+  });
+
   it('renders with navbar', () => {
-    render(<HomePage />);
-    // Use getAllByText since there are multiple 'JF' and '举父棒球联赛' elements (navbar and footer)
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getAllByText('JF').length).toBeGreaterThan(0);
     expect(screen.getAllByText('举父棒球联赛').length).toBeGreaterThan(0);
   });
 
   it('renders hero section', () => {
-    render(<HomePage />);
-    expect(screen.getByText('举父棒球联赛')).toBeInTheDocument();
-    expect(screen.getByText(/专业的棒球数据分析平台/)).toBeInTheDocument();
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
+    expect(screen.getByTestId('hero-title')).toHaveTextContent('举父棒球联赛');
+    expect(screen.getByTestId('hero-slogan')).toHaveTextContent(/专业的棒球联赛数据平台/);
   });
 
   it('renders feature cards', () => {
-    render(<HomePage />);
-    // Feature section has these titles
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('球队数据', { selector: 'h3' })).toBeInTheDocument();
     expect(screen.getByText('球员统计', { selector: 'h3' })).toBeInTheDocument();
     expect(screen.getByText('赛程安排', { selector: 'h3' })).toBeInTheDocument();
@@ -26,58 +59,117 @@ describe('HomePage', () => {
   });
 
   it('renders component showcase section', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('组件展示')).toBeInTheDocument();
     expect(screen.getByText('基础布局与主题配置组件预览')).toBeInTheDocument();
   });
 
   it('renders skeleton demo', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('Skeleton 加载骨架')).toBeInTheDocument();
   });
 
   it('renders data freshness indicator demo', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('数据时效指示器')).toBeInTheDocument();
   });
 
   it('renders button demo', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('Button 按钮组件')).toBeInTheDocument();
   });
 
   it('renders error state demo', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('ErrorState 错误状态')).toBeInTheDocument();
   });
 
   it('renders footer', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     expect(screen.getByText('数据仅供学习交流使用')).toBeInTheDocument();
   });
 
-  it('navigates to login when login button is clicked', () => {
-    const originalLocation = window.location;
-    // @ts-expect-error - mocking window.location
-    delete window.location;
-    window.location = { href: '' } as Location;
+  it('opens login modal when login button is clicked', async () => {
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
+    fireEvent.click(screen.getByTestId('hero-login-button'));
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '登录' })).toBeInTheDocument();
+    });
+  });
 
-    render(<HomePage />);
-    fireEvent.click(screen.getByRole('button', { name: '登录' }));
-    expect(window.location.href).toBe('/login');
+  it('shows user info in navbar when logged in', () => {
+    mockUseAuthStore.mockReturnValueOnce({
+      isAuthenticated: true,
+      user: { name: 'Test User' },
+      checkAuth: mockCheckAuth,
+    });
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
+    expect(screen.getByText('Test User')).toBeInTheDocument();
+  });
 
-    window.location = originalLocation;
+  it('opens login modal from navbar login button', async () => {
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
+    const navLoginButtons = screen.getAllByRole('button', { name: '登录' });
+    // Desktop navbar login button
+    fireEvent.click(navLoginButtons[0]);
+    await waitFor(() => {
+      expect(screen.getByRole('dialog', { name: '登录' })).toBeInTheDocument();
+    });
   });
 
   it('shows error state when simulate error is clicked', () => {
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
     fireEvent.click(screen.getByRole('button', { name: '模拟错误' }));
     expect(screen.getByText('加载失败')).toBeInTheDocument();
   });
 
   it('retries after error', async () => {
     vi.useFakeTimers();
-    render(<HomePage />);
+    render(
+      <AllProviders>
+        <HomePage />
+      </AllProviders>
+    );
 
     // Trigger error
     fireEvent.click(screen.getByRole('button', { name: '模拟错误' }));
