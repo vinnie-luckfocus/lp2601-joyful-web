@@ -2,7 +2,7 @@
 name: 03-user-authentication
 status: backlog
 created: 2026-04-09T03:16:18Z
-updated: 2026-04-09T04:00:00Z
+updated: 2026-04-09T05:37:33Z
 progress: 0%
 prd: .claude/prds/03-user-authentication.md
 github: [Will be updated when synced to GitHub]
@@ -146,3 +146,30 @@ Implement a JWT-based user authentication system for the Joyful league website. 
 
 - **Timeline**: 2–3 days for a single developer
 - **Critical path**: Backend auth APIs → frontend state → login UI/animation → route guards → tests
+
+## Tasks Created
+- [ ] 001.md - Add is_first_login migration and update seed script (parallel: false)
+- [ ] 002.md - Fix JWT expiry to 7 days (parallel: true)
+- [ ] 003.md - Update login response to include team_id and is_first_login (parallel: true)
+- [ ] 004.md - Implement POST /api/auth/change-password (parallel: true)
+- [ ] 005.md - Extend auth store with changePassword and is_first_login (parallel: true)
+- [ ] 006.md - Implement MLB-style login modal and first-login password change (parallel: false)
+- [ ] 007.md - Fix ProtectedRoute loading flash and axios 401 redirect loop (parallel: true)
+- [ ] 008.md - Wire Navbar to auth store on HomePage (parallel: true)
+- [ ] 009.md - Backend auth integration test coverage (parallel: false)
+- [ ] 010.md - Frontend auth component and E2E test coverage (parallel: false)
+
+Total tasks: 10
+Parallel tasks: 6
+Sequential tasks: 4
+Estimated total effort: 30 hours
+
+## Revision History
+
+**2026-04-09T05:37:33Z** — Multi-dimensional audit against PRD performed. Key revisions applied:
+- **002.md**: Added helmet security headers, CORS wildcard validation, and JWT secret cleanup requirements
+- **004.md**: Aligned API field names to PRD (`old_password`/`new_password`), added explicit 6-character minimum and 72-byte maximum password validation, and added < 500ms performance requirement
+- **005.md**: Fixed contradiction with PRD Story 2 — now requires re-login after successful password change instead of preserving the session
+- **006.md**: Added "redirect to personal-related page after login" and "re-login after password change" acceptance criteria
+- **009.md**: Added backend console.log cleanup and login API performance test (< 500ms)
+- **010.md**: Added E2E coverage for re-login after password change and redirect-to-personal-page flow
