@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { GameSchedulePage } from '../GameSchedulePage';
 import * as useGamesModule from '../../hooks/useGames';
 import * as useAttendanceModule from '../../hooks/useAttendance';
@@ -81,6 +82,7 @@ describe('GameSchedulePage', () => {
       user: null,
       isAuthenticated: false,
       logout: vi.fn(),
+      checkAuth: vi.fn(),
     } as unknown as ReturnType<typeof authStoreModule.useAuthStore>);
 
     mockUseAttendance.mockReturnValue({
@@ -100,7 +102,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     // Check skeleton elements exist
     const skeletons = screen.getAllByTestId('skeleton');
@@ -120,7 +122,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     expect(screen.getByRole('heading', { name: '赛程安排' })).toBeInTheDocument();
     expect(screen.getByText('5月')).toBeInTheDocument();
@@ -139,7 +141,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     // 5月的比赛是 May 10, May 20 -> 两个，月份 4 为 5 月
     // 检查 6 月的比赛
@@ -162,7 +164,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     const prevButton = screen.getByLabelText('上个月');
     expect(prevButton).toBeDisabled();
@@ -179,7 +181,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     const nextButton = screen.getByLabelText('下个月');
     fireEvent.click(nextButton);
@@ -198,7 +200,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     const cards = screen.getAllByTestId('schedule-game-card');
     expect(cards).toHaveLength(2);
@@ -212,7 +214,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     expect(screen.queryByText('该月份暂无赛程')).not.toBeInTheDocument();
   });
@@ -226,7 +228,7 @@ describe('GameSchedulePage', () => {
       refetch,
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     expect(screen.getByText('加载失败')).toBeInTheDocument();
     expect(screen.getByText('Failed to load')).toBeInTheDocument();
@@ -244,7 +246,7 @@ describe('GameSchedulePage', () => {
       refetch: vi.fn(),
     });
 
-    render(<GameSchedulePage />);
+    render(<MemoryRouter><GameSchedulePage /></MemoryRouter>);
 
     expect(screen.queryByLabelText('上个月')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('下个月')).not.toBeInTheDocument();

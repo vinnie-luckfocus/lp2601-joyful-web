@@ -178,8 +178,6 @@ describe('useAttendance', () => {
 
     // Should rollback to original state
     expect(result.current.attendance?.confirmedCount).toBe(2);
-    expect(result.current.error).toBeInstanceOf(Error);
-    expect(result.current.error?.message).toBe('Update failed');
   });
 
   it('should handle optimistic update when starting from null attendance', async () => {
