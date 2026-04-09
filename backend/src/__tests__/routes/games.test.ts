@@ -1,0 +1,160 @@
+/**
+ * Games Routes Tests
+ * Tests protected game list and detail endpoints
+ */
+
+import request from 'supertest';
+import app from '../../app';
+import pool from '../../config/database';
+import { generateToken } from '../../middleware/auth';
+import { hashPassword } from '../../utils/password';
+
+describe('Games Routes', () => {
+  let playerToken: string;
+  let playerUserId: string;
+  let teamAId: number;
+  let teamBId: number;
+  let gameId: number;
+  let teamAName: string;
+  let teamBName: string;
+
+  beforeAll(async () => {
+    teamAName = `Team Alpha ${Date.now()}`;
+    teamBName = `Team Beta ${Date.now()}`;
+
+    // Create test player user
+    const passwordHash = await hashPassword('playerpass');
+    const playerResult = await pool.query(
+      `INSERT INTO users (username, password_hash, name, role, status)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (username) DO UPDATE SET role = $4 RETURNING id`,
+      ['gameroutes_player', passwordHash, 'Game Routes Player', 'player', 'active']
+    );
+    playerUserId = playerResult.rows[0].id.toString();
+    playerToken = generateToken(playerUserId, 'player');
+
+    // Create test teams
+    const teamAResult = await pool.query(
+      `INSERT INTO teams (name, division, wins, losses)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [teamAName, 'A', 0, 0]
+    );
+    teamAId = teamAResult.rows[0].id;
+
+    const teamBResult = await pool.query(
+      `INSERT INTO teams (name, division, wins, losses)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [teamBName, 'A', 0, 0]
+    );
+    teamBId = teamBResult.rows[0].id;
+
+    // Create a test game
+    const gameResult = await pool.query(
+      `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id`,
+      ['2026-05-01T14:00:00Z', 'Test Stadium', teamAId, teamBId, 'scheduled']
+    );
+    gameId = gameResult.rows[0].id;
+
+    // Set player attendance to confirmed
+    await pool.query(
+      `INSERT INTO game_attendance (game_id, user_id, status)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (game_id, user_id) DO UPDATE SET status = $3`,
+      [gameId, playerUserId, 'confirmed']
+    );
+  });
+
+  afterAll(async () => {
+    await pool.query('DELETE FROM game_attendance WHERE user_id = $1', [playerUserId]);
+    await pool.query('DELETE FROM games WHERE home_team_id IN ($1, $2) OR away_team_id IN ($1, $2)', [teamAId, teamBId]);
+    await pool.query('DELETE FROM teams WHERE id IN ($1, $2)', [teamAId, teamBId]);
+    await pool.query('DELETE FROM users WHERE username = $1', ['gameroutes_player']);
+  });
+
+  describe('GET /api/games', () => {
+    it('should return 401 without token', async () => {
+      const response = await request(app).get('/api/games');
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return all games with my_status for authenticated user', async () => {
+      const response = await request(app)
+        .get('/api/games')
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
+
+      const game = response.body.data.find((g: { id: number }) => g.id === gameId);
+      expect(game).toBeDefined();
+      expect(game.my_status).toBe('confirmed');
+      expect(game.home_team_name).toBe(teamAName);
+      expect(game.away_team_name).toBe(teamBName);
+    });
+  });
+
+  describe('GET /api/games/:id', () => {
+    it('should return 401 without token', async () => {
+      const response = await request(app).get(`/api/games/${gameId}`);
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return game details with my_status for authenticated user', async () => {
+      const response = await request(app)
+        .get(`/api/games/${gameId}`)
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeDefined();
+      expect(response.body.data.id).toBe(gameId);
+      expect(response.body.data.my_status).toBe('confirmed');
+      expect(response.body.data.home_team_name).toBe(teamAName);
+      expect(response.body.data.away_team_name).toBe(teamBName);
+    });
+
+    it('should return 400 for invalid gameId format', async () => {
+      const response = await request(app)
+        .get('/api/games/abc')
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should return null my_status when no attendance record exists', async () => {
+      // Create a second game without attendance
+      const game2Result = await pool.query(
+        `INSERT INTO games (scheduled_at, location, home_team_id, away_team_id, status)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        ['2026-05-02T14:00:00Z', 'Another Stadium', teamAId, teamBId, 'scheduled']
+      );
+      const game2Id = game2Result.rows[0].id;
+
+      const listResponse = await request(app)
+        .get('/api/games')
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      const game2 = listResponse.body.data.find((g: { id: number }) => g.id === game2Id);
+      expect(game2).toBeDefined();
+      expect(game2.my_status).toBeNull();
+
+      const detailResponse = await request(app)
+        .get(`/api/games/${game2Id}`)
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(detailResponse.status).toBe(200);
+      expect(detailResponse.body.data.my_status).toBeNull();
+
+      await pool.query('DELETE FROM games WHERE id = $1', [game2Id]);
+    });
+  });
+});
