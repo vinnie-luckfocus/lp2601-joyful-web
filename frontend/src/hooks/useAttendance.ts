@@ -1,12 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/axios';
+import { useAuthStore } from '../stores/auth';
 
 export type AttendanceStatus = 'confirmed' | 'declined' | null;
+
+export interface AttendeeUser {
+  id: string;
+  username: string;
+  name: string;
+}
 
 export interface Attendance {
   gameId: number;
   status: AttendanceStatus;
   confirmedCount: number;
+  confirmed?: AttendeeUser[];
+  declined?: AttendeeUser[];
+  pending?: AttendeeUser[];
 }
 
 export interface UseAttendanceReturn {
@@ -21,6 +31,7 @@ export const useAttendance = (gameId: number): UseAttendanceReturn => {
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const { user } = useAuthStore();
 
   const fetchAttendance = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -33,15 +44,32 @@ export const useAttendance = (gameId: number): UseAttendanceReturn => {
     setError(null);
 
     try {
-      const response = await api.get<{ success: boolean; data?: { status: AttendanceStatus; confirmedCount: number } }>(
-        `/games/${gameId}/attendance`
-      );
+      const response = await api.get<{
+        success: boolean;
+        data?: {
+          confirmed: AttendeeUser[];
+          declined: AttendeeUser[];
+          pending: AttendeeUser[];
+        };
+      }>(`/games/${gameId}/attendance`);
 
       if (response.data.success && response.data.data) {
+        const { confirmed, declined, pending } = response.data.data;
+        const confirmedCount = confirmed.length;
+        const myUserId = user?.id?.toString();
+        const status = confirmed.some((u) => u.id === myUserId)
+          ? 'confirmed'
+          : declined.some((u) => u.id === myUserId)
+          ? 'declined'
+          : null;
+
         setAttendance({
           gameId,
-          status: response.data.data.status,
-          confirmedCount: response.data.data.confirmedCount,
+          status,
+          confirmedCount,
+          confirmed,
+          declined,
+          pending,
         });
       } else {
         throw new Error('Failed to fetch attendance');
@@ -52,7 +80,7 @@ export const useAttendance = (gameId: number): UseAttendanceReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [gameId]);
+  }, [gameId, user?.id]);
 
   useEffect(() => {
     fetchAttendance();
@@ -93,17 +121,14 @@ export const useAttendance = (gameId: number): UseAttendanceReturn => {
       });
 
       try {
-        const response = await api.post<{ success: boolean; data?: { status: AttendanceStatus; confirmedCount: number } }>(
-          `/games/${gameId}/attend`,
-          { status }
-        );
+        const response = await api.post<{
+          success: boolean;
+          data?: { gameId: number; status: AttendanceStatus };
+        }>(`/games/${gameId}/attend`, { status });
 
         if (response.data.success && response.data.data) {
-          setAttendance({
-            gameId,
-            status: response.data.data.status,
-            confirmedCount: response.data.data.confirmedCount,
-          });
+          // Keep optimistic state; refetch to sync lists
+          await fetchAttendance();
         } else {
           throw new Error('Failed to update attendance');
         }

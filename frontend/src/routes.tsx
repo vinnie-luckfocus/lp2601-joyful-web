@@ -9,6 +9,7 @@ import Stats from './pages/Admin/Stats'
 import Videos from './pages/Admin/Videos'
 import ComingSoon from './pages/ComingSoon'
 import GameSchedulePage from './pages/GameSchedulePage'
+import GameDetailPage from './pages/GameDetailPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function AppRoutes() {
@@ -19,6 +20,7 @@ function AppRoutes() {
       <Route path="/teams" element={<ComingSoon />} />
       <Route path="/players" element={<ComingSoon />} />
       <Route path="/schedule" element={<GameSchedulePage />} />
+      <Route path="/games/:id" element={<GameDetailPage />} />
       <Route path="/help" element={<ComingSoon />} />
       <Route path="/contact" element={<ComingSoon />} />
       <Route path="/about" element={<ComingSoon />} />
