@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../common/Button';
@@ -19,6 +20,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   className = '',
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  const isActiveLink = (href: string): boolean => {
+    if (href === '/schedule') {
+      return location.pathname === '/schedule' || location.pathname.startsWith('/games');
+    }
+    return location.pathname === href;
+  };
 
   const navLinks = [
     { label: '首页', href: '/' },
@@ -49,7 +58,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <a
                 key={link.href}
                 href={link.href}
-                className="text-gray-600 hover:text-mlb-navy font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded-md px-2 py-1"
+                className={`transition-colors focus:outline-none focus:ring-2 focus:ring-mlb-navy focus:ring-offset-2 rounded-md px-2 py-1 ${
+                  isActiveLink(link.href)
+                    ? 'text-mlb-navy font-semibold'
+                    : 'text-gray-600 hover:text-mlb-navy font-medium'
+                }`}
               >
                 {link.label}
               </a>
@@ -121,7 +134,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <a
                   key={link.href}
                   href={link.href}
-                  className="block px-3 py-2 text-gray-600 hover:text-mlb-navy hover:bg-gray-50 rounded-md font-medium"
+                  className={`block px-3 py-2 rounded-md ${
+                    isActiveLink(link.href)
+                      ? 'text-mlb-navy font-semibold bg-gray-50'
+                      : 'text-gray-600 hover:text-mlb-navy hover:bg-gray-50 font-medium'
+                  }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.label}
