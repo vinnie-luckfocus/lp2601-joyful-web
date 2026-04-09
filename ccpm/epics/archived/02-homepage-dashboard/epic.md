@@ -4,7 +4,7 @@ status: completed
 created: 2026-04-08T06:14:45Z
 updated: 2026-04-09T12:45:00Z
 progress: 100%
-prd: .claude/prds/02-homepage-dashboard.md
+prd: ccpm/prds/02-homepage-dashboard.md
 github: https://github.com/vinnie-luckfocus/lp2601-joyful-web/issues/12
 ---
 

@@ -54,9 +54,9 @@ temp/
 tmp/
 
 # Claude
-.claude/epics/*/updates/
-.claude/epics/*-analysis.md
-.claude/epics/*/execution-status.md
+ccpm/epics/*/updates/
+ccpm/epics/*-analysis.md
+ccpm/epics/*/execution-status.md
 
 # Test artifacts
 test-results/

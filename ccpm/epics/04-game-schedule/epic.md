@@ -3,7 +3,7 @@ name: 04-game-schedule
 status: backlog
 created: 2026-04-09T09:09:32Z
 progress: 0%
-prd: .claude/prds/04-game-schedule.md
+prd: ccpm/prds/04-game-schedule.md
 github: https://github.com/vinnie-luckfocus/lp2601-joyful-web/issues/33
 updated: 2026-04-09T10:03:18Z
 ---

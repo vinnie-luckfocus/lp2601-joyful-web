@@ -66,8 +66,8 @@ fi
 # Create directory structure
 echo ""
 echo "📁 Creating directory structure..."
-mkdir -p .claude/prds
-mkdir -p .claude/epics
+mkdir -p ccpm/prds
+mkdir -p ccpm/epics
 mkdir -p .claude/rules
 mkdir -p .claude/agents
 mkdir -p .claude/scripts/pm

@@ -243,11 +243,13 @@ lp2601-joyful-web/
 ├── frontend/          # React + Vite + TypeScript
 ├── database/          # Migrations and seeds
 ├── tests/             # Integration tests
-└── .claude/           # PM commands and docs
+├── ccpm/              # PM artifacts (epics, PRDs, tasks)
+│   ├── epics/         # Epic documentation
+│   └── prds/          # Product requirements
+└── .claude/           # PM commands, rules, and scripts
     ├── commands/      # Slash commands
-    ├── epics/         # Epic documentation
-    ├── prds/          # Product requirements
-    └── rules/         # Project rules
+    ├── rules/         # Project rules
+    └── scripts/       # Automation scripts
 ```
 
 ---
