@@ -9,7 +9,7 @@ if (!JWT_SECRET) {
 }
 
 export function generateToken(userId: string, role: string): string {
-  return jwt.sign({ userId, role }, JWT_SECRET!, { expiresIn: '2h' });
+  return jwt.sign({ userId, role }, JWT_SECRET!, { expiresIn: '7d' });
 }
 
 export function verifyToken(req: Request, res: Response, next: NextFunction): void {
