@@ -14,6 +14,8 @@
     <a href="#-功能特性">功能特性</a> •
     <a href="#-技术栈">技术栈</a> •
     <a href="#-快速开始">快速开始</a> •
+    <a href="#-部署">部署</a> •
+    <a href="#-测试验证">测试验证</a> •
     <a href="#-项目结构">项目结构</a> •
     <a href="#-api文档">API文档</a> •
     <a href="#-开发计划">开发计划</a>
@@ -75,6 +77,8 @@
 ### 测试
 ![Jest](https://img.shields.io/badge/Jest-30.3.0-C21325?style=flat-square&logo=jest&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-4.1.3-6E9F18?style=flat-square&logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-1.59.1-2EAD33?style=flat-square&logo=playwright&logoColor=white)
+![Lighthouse](https://img.shields.io/badge/Lighthouse-CI-F44B21?style=flat-square&logo=lighthouse&logoColor=white)
 ![Supertest](https://img.shields.io/badge/Supertest-API_Testing-333333?style=flat-square)
 
 </div>
@@ -147,6 +151,41 @@ npm run dev
 - 前端: http://localhost:3000
 - 后端 API: http://localhost:3001
 - 默认管理员账号: `admin@joyful.com` / `admin123`
+
+---
+
+## 🚢 部署
+
+### 生产环境构建
+
+```bash
+# 构建前端（输出到 frontend/dist/）
+cd frontend
+npm run build
+
+# 构建后端（输出到 backend/dist/）
+cd ../backend
+npm run build
+```
+
+### 生产环境启动
+
+```bash
+# 启动后端服务（端口 3001）
+cd backend
+npm start
+
+# 前端静态资源可通过 preview 预览，或部署 dist/ 到 CDN/静态服务器
+cd ../frontend
+npm run preview
+```
+
+### 部署说明
+
+- **前端**: Vite 构建生成 `frontend/dist/` 静态文件，可部署到任意静态托管服务（Nginx、Vercel、Cloudflare Pages 等）
+- **后端**: Express 服务，构建后运行 `node dist/index.js`，需确保 PostgreSQL 和环境变量已配置
+- **环境变量**: 生产环境需配置 `DATABASE_URL`、`JWT_SECRET`、`PORT` 等关键变量
+- **数据库**: 首次部署需执行迁移和种子数据导入 (`npm run seed`)
 
 ---
 
@@ -225,20 +264,55 @@ lp2601-joyful-web/
 
 ---
 
-## 🧪 测试
+## 🧪 测试验证
+
+### 单元测试
 
 ```bash
-# 运行后端测试
+# 后端单元测试 (Jest)
 cd backend
 npm test
+npm run test:coverage    # 覆盖率报告
 
-# 运行前端测试
-cd ../frontend
+# 前端单元测试 (Vitest + React Testing Library)
+cd frontend
 npm test
-
-# 运行测试覆盖率检查
-npm run test:coverage
+npm run test:coverage    # 覆盖率报告
 ```
+
+### 端到端 (E2E) 和集成测试
+
+```bash
+cd frontend
+
+# 运行 E2E 测试 (Playwright)
+npm run test:e2e
+
+# 运行集成测试 (Playwright)
+npm run test:integration
+
+# 运行全部 Playwright 测试
+npm run test:playwright
+```
+
+### 性能和可访问性测试
+
+```bash
+cd frontend
+
+# Lighthouse CI 自动化性能/可访问性/SEO 审计
+npm run lighthouse
+```
+
+### 测试覆盖范围
+
+| 测试类型 | 工具 | 覆盖内容 |
+|----------|------|----------|
+| 后端单元测试 | Jest + Supertest | API 路由、服务层、公开接口 |
+| 前端单元测试 | Vitest + @testing-library/react | 组件、Hooks、工具函数 |
+| E2E 测试 | Playwright | 用户浏览流程、登录跳转、移动端交互 |
+| 集成测试 | Playwright + @axe-core/playwright | 首页渲染、响应式断点、键盘导航、链接校验、无障碍 (axe-core) |
+| 性能测试 | Lighthouse CI | Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 90, SEO ≥ 95 |
 
 ---
 
@@ -266,8 +340,10 @@ npm run test:coverage
 - [x] Tailwind MLB 主题配置
 - [x] 管理后台布局框架
 
-### 🔄 Phase 1: 首页仪表盘与会员系统 (进行中)
-- [ ] 首页看板（赛程、积分榜、排行榜）
+### ✅ Phase 1: 首页仪表盘与公开 API (已完成)
+- [x] 首页看板（赛程、积分榜、排行榜、最近战报）
+- [x] 公开 API 接口（`/api/public/*`）
+- [x] Playwright E2E / 集成测试与 Lighthouse 性能审计
 - [ ] 会员注册与登录系统
 - [ ] 个人中心与数据展示
 
