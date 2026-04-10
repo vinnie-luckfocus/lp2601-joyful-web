@@ -1,8 +1,8 @@
 {
-  "status": "completed",
+  "status": "running",
   "phase": "3",
-  "current_epic": null,
-  "resume_epic": null,
+  "current_epic": "test-coverage-validation",
+  "resume_epic": "test-coverage-validation",
   "completed_epics": ["01-admin-data-entry", "02-homepage-dashboard", "03-user-authentication", "04-game-schedule", "05-team-management", "06-tactics-board", "statistics", "video-replay"],
   "skipped_epics": [],
   "needs_review": ["04-game-schedule"],
@@ -14,6 +14,5 @@
     "dry_run": false
   },
   "started_at": "2026-04-09T12:35:47Z",
-  "updated_at": "2026-04-10T10:01:05Z",
-  "completed_at": "2026-04-10T10:01:05Z"
+  "updated_at": "2026-04-10T20:42:00Z"
 }
