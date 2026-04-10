@@ -17,6 +17,10 @@ updated: 2026-04-10T11:43:09Z
 | 测试负责人 | Claude Code |
 | 计划创建时间 | 2026-04-10T11:43:09Z |
 | 测试环境 | 本地开发环境（前端 Vite + 后端 Express + PostgreSQL） |
+| CCPM Epic | `test-coverage-validation` (PRD 10) |
+| GitHub Epic | Issue #85 |
+| 开发分支 | `epic/test-coverage-validation` |
+| Worktree | `../epic-test-coverage-validation` |
 
 ## 2. 测试范围
 
