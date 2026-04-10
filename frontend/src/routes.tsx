@@ -14,6 +14,8 @@ import TacticsBoardPage from './pages/TacticsBoardPage'
 import PlayerStatsPage from './pages/PlayerStatsPage'
 import TeamPage from './pages/TeamPage'
 import NotFoundPage from './pages/NotFoundPage'
+import VideosListPage from './pages/VideosListPage'
+import VideoPlaybackPage from './pages/VideoPlaybackPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function AppRoutes() {
@@ -28,6 +30,8 @@ function AppRoutes() {
       <Route path="/games/:id" element={<GameDetailPage />} />
       <Route path="/games/:id/tactics" element={<TacticsBoardPage />} />
       <Route path="/stats" element={<PlayerStatsPage />} />
+      <Route path="/videos" element={<VideosListPage />} />
+      <Route path="/videos/:id" element={<VideoPlaybackPage />} />
       <Route path="/help" element={<ComingSoon />} />
       <Route path="/contact" element={<ComingSoon />} />
       <Route path="/about" element={<ComingSoon />} />

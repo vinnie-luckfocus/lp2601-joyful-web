@@ -1,9 +1,9 @@
 ---
 name: video-replay
-status: backlog
+status: completed
 created: 2026-04-09T22:15:43Z
-updated: 2026-04-09T22:22:31Z
-progress: 0%
+updated: 2026-04-10T10:01:05Z
+progress: 100%
 prd: ccpm/prds/08-video-replay.md
 github: https://github.com/vinnie-luckfocus/lp2601-joyful-web/issues/60
 ---

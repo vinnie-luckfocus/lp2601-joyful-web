@@ -279,6 +279,66 @@ async function assignCaptains(teamIds, teamAUserIds, teamBUserIds) {
 }
 
 /**
+ * Insert sample videos for completed games
+ * @param {Array} completedGameIds - Array of completed game IDs
+ * @param {number} adminId - Admin user ID as uploader
+ * @returns {Promise<Array>} - Array of inserted video IDs
+ */
+async function insertVideos(completedGameIds, adminId) {
+  console.log('Inserting sample videos...');
+
+  const videoIds = [];
+  for (let i = 0; i < completedGameIds.length; i++) {
+    const gameId = completedGameIds[i];
+    const result = await client.query(
+      `INSERT INTO videos (game_id, title, description, video_url, thumbnail_url, uploaded_by, status, duration_seconds)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [
+        gameId,
+        `比赛精彩回放 #${i + 1}`,
+        `第${i + 1}场比赛的完整录像，包含精彩瞬间和详细解说。`,
+        `https://cdn.example.com/videos/game_${gameId}.mp4`,
+        `https://cdn.example.com/thumbnails/game_${gameId}.jpg`,
+        adminId,
+        'ready',
+        3600
+      ]
+    );
+    videoIds.push(result.rows[0].id);
+    console.log(`  - Video ${result.rows[0].id} for game ${gameId}`);
+  }
+
+  return videoIds;
+}
+
+/**
+ * Insert sample highlights for videos
+ * @param {Array} videoIds - Array of video IDs
+ * @param {number} adminId - Admin user ID as creator
+ */
+async function insertHighlights(videoIds, adminId) {
+  console.log('Inserting sample highlights...');
+
+  const highlights = [
+    { title: '开场全垒打', description: '精彩的全垒打，直接打出球场外！', start_time: 120, end_time: 135 },
+    { title: '双杀守备', description: '完美的双杀配合，守住关键局面。', start_time: 540, end_time: 555 },
+    { title: '再见安打', description: '比赛最后时刻的再见安打，绝杀对手。', start_time: 3420, end_time: 3440 }
+  ];
+
+  for (const videoId of videoIds) {
+    for (const highlight of highlights) {
+      await client.query(
+        `INSERT INTO video_highlights (video_id, title, description, start_time, end_time, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [videoId, highlight.title, highlight.description, highlight.start_time, highlight.end_time, adminId]
+      );
+    }
+    console.log(`  - ${highlights.length} highlights for video ${videoId}`);
+  }
+}
+
+/**
  * Insert admin user
  */
 async function insertAdmin() {
@@ -286,9 +346,11 @@ async function insertAdmin() {
 
   const passwordHash = await hashPassword(adminUser.password);
 
-  await client.query(
+  const result = await client.query(
     `INSERT INTO users (username, password_hash, name, role, status, is_first_login)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (username) DO UPDATE SET role = $4
+     RETURNING id`,
     [
       adminUser.username,
       passwordHash,
@@ -300,6 +362,7 @@ async function insertAdmin() {
   );
 
   console.log(`  - Admin: ${adminUser.username} (${adminUser.name})`);
+  return result.rows[0].id;
 }
 
 /**
@@ -414,6 +477,8 @@ async function verifyData() {
   const attendanceCount = await client.query('SELECT COUNT(*) FROM game_attendance');
   const lineupCount = await client.query('SELECT COUNT(*) FROM game_lineups');
   const tacticsCount = await client.query('SELECT COUNT(*) FROM game_tactics');
+  const videoCount = await client.query('SELECT COUNT(*) FROM videos');
+  const highlightCount = await client.query('SELECT COUNT(*) FROM video_highlights');
 
   console.log(`  - Teams: ${teamCount.rows[0].count}`);
   console.log(`  - Players: ${playerCount.rows[0].count}`);
@@ -422,6 +487,8 @@ async function verifyData() {
   console.log(`  - Attendance: ${attendanceCount.rows[0].count}`);
   console.log(`  - Lineups: ${lineupCount.rows[0].count}`);
   console.log(`  - Tactics: ${tacticsCount.rows[0].count}`);
+  console.log(`  - Videos: ${videoCount.rows[0].count}`);
+  console.log(`  - Highlights: ${highlightCount.rows[0].count}`);
 
   // Verify team assignments
   const teamAPlayers = await client.query(
@@ -443,7 +510,9 @@ async function verifyData() {
     games: parseInt(gameCount.rows[0].count),
     attendance: parseInt(attendanceCount.rows[0].count),
     lineups: parseInt(lineupCount.rows[0].count),
-    tactics: parseInt(tacticsCount.rows[0].count)
+    tactics: parseInt(tacticsCount.rows[0].count),
+    videos: parseInt(videoCount.rows[0].count),
+    highlights: parseInt(highlightCount.rows[0].count)
   };
 }
 
@@ -499,7 +568,13 @@ async function run() {
     }
 
     // Insert admin
-    await insertAdmin();
+    const adminId = await insertAdmin();
+
+    // Insert sample videos and highlights for completed games
+    if (completedGameIds.length > 0) {
+      const videoIds = await insertVideos(completedGameIds, adminId);
+      await insertHighlights(videoIds, adminId);
+    }
 
     // Commit transaction
     await client.query('COMMIT');
@@ -516,6 +591,8 @@ async function run() {
     console.log(`Attendance: ${stats.attendance}`);
     console.log(`Lineups: ${stats.lineups}`);
     console.log(`Tactics: ${stats.tactics}`);
+    console.log(`Videos: ${stats.videos}`);
+    console.log(`Highlights: ${stats.highlights}`);
     console.log(`Admin: ${stats.admins}`);
     console.log('\nSeed data summary complete.');
     console.log('  Use admin username to log in and complete first-login password change.');
