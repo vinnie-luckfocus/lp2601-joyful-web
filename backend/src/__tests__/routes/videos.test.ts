@@ -172,7 +172,7 @@ describe('Videos Routes', () => {
       const result = await pool.query(
         `INSERT INTO videos (game_id, title, description, video_url, uploaded_by, status, file_size_bytes)
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [gameId, 'Incomplete', '', '', adminId, 'uploading', 1024]
+        [gameId, 'Incomplete', '', '', adminId, 'processing', 1024]
       );
       uploadVideoId = result.rows[0].id;
     });

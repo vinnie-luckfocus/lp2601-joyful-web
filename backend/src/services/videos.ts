@@ -117,7 +117,7 @@ export async function createVideoUpload(
     `INSERT INTO videos (game_id, title, description, video_url, uploaded_by, status, file_size_bytes)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id`,
-    [gameId, title, `Upload for ${fileName}`, '', uploadedBy, 'uploading', fileSize]
+    [gameId, title, `Upload for ${fileName}`, '', uploadedBy, 'processing', fileSize]
   );
 
   const videoId = result.rows[0].id;
@@ -144,7 +144,7 @@ export async function completeVideoUpload(
          video_url = $2,
          duration_seconds = $3
      WHERE id = $1
-       AND status = 'uploading'
+       AND status = 'processing'
      RETURNING id`,
     [videoId, objectKey, duration]
   );

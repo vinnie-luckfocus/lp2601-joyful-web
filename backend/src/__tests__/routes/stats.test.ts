@@ -123,4 +123,37 @@ describe('Stats Routes', () => {
       expect(response.body.success).toBe(false);
     });
   });
+
+  describe('GET /api/games/:id/batting-records', () => {
+    it('should reject non-admin users', async () => {
+      const response = await request(app)
+        .get(`/api/games/${gameId}/batting-records`)
+        .set('Authorization', `Bearer ${playerToken}`);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should return batting records for admin', async () => {
+      const response = await request(app)
+        .get(`/api/games/${gameId}/batting-records`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.data)).toBe(true);
+
+      const record = response.body.data.find((r: { user_id: string }) => r.user_id.toString() === playerUserId);
+      expect(record).toBeDefined();
+      expect(record.user_name).toBe('Stats Player');
+    });
+
+    it('should return 400 for invalid gameId format', async () => {
+      const response = await request(app)
+        .get('/api/games/abc/batting-records')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBeDefined();
+    });
+  });
 });
