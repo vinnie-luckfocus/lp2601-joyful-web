@@ -26,6 +26,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (href === '/schedule') {
       return location.pathname === '/schedule' || location.pathname.startsWith('/games');
     }
+    if (href === '/videos') {
+      return location.pathname === '/videos' || location.pathname.startsWith('/videos/');
+    }
     return location.pathname === href;
   };
 
@@ -34,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { label: '球队', href: '/teams' },
     { label: '球员', href: '/players' },
     { label: '赛程', href: '/schedule' },
+    { label: '视频', href: '/videos' },
   ];
 
   return (
