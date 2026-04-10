@@ -30,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onCollapse 
 
       {/* Collapse Button */}
       <button
+        aria-label="Toggle sidebar"
         onClick={() => onCollapse?.(!collapsed)}
         className="absolute bottom-6 right-4 p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
       >

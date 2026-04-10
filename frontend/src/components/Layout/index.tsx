@@ -16,7 +16,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         collapsed={sidebarCollapsed}
         onCollapse={setSidebarCollapsed}
       />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-60'}`}>
+      <div data-testid="main-container" className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-60'}`}>
         <Header />
         <ContentArea>{children}</ContentArea>
       </div>

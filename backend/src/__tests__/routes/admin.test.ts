@@ -101,5 +101,38 @@ describe('Admin Routes', () => {
       expect(response.status).toBe(500);
       expect(response.body.error).toBe('Failed to fetch users');
     });
+
+    it('should return empty array when no users exist', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({ rows: [] });
+
+      const response = await request(app)
+        .get('/api/admin/users')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body).toHaveLength(0);
+    });
+
+    it('should return users with correct fields', async () => {
+      (pool.query as jest.Mock).mockResolvedValueOnce({
+        rows: [
+          { id: 1, name: 'Admin User', role: 'admin', team_id: null },
+          { id: 2, name: 'Player User', role: 'player', team_id: 1 },
+        ],
+      });
+
+      const response = await request(app)
+        .get('/api/admin/users')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body[0]).toHaveProperty('id');
+      expect(response.body[0]).toHaveProperty('name');
+      expect(response.body[0]).toHaveProperty('role');
+      expect(response.body[0]).toHaveProperty('team_id');
+      expect(response.body[0].role).toBe('admin');
+      expect(response.body[1].team_id).toBe(1);
+    });
   });
 });
