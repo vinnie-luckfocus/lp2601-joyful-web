@@ -5,6 +5,7 @@ import publicRoutes from './public';
 import gamesRoutes from './games';
 import statsRoutes from './stats';
 import teamsRoutes from './teams';
+import videosRoutes from './videos';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/public', publicRoutes);
 router.use('/games', gamesRoutes);
 router.use('/stats', statsRoutes);
 router.use('/teams', teamsRoutes);
+router.use('/videos', videosRoutes);
 
 export default router;
