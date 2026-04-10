@@ -68,6 +68,20 @@ describe('Auth Store', () => {
     expect(state.isLoading).toBe(false);
   });
 
+  it('should handle generic login error without response', async () => {
+    mockPost.mockRejectedValue(new Error('Network error'));
+
+    try {
+      await useAuthStore.getState().login('admin', 'wrongpass');
+    } catch {
+      // Expected to throw
+    }
+
+    const state = useAuthStore.getState();
+    expect(state.error).toBe('Login failed');
+    expect(state.isLoading).toBe(false);
+  });
+
   it('should logout and clear state', () => {
     useAuthStore.setState({
       user: { id: 1, username: 'admin', name: 'Admin', role: 'admin' },
@@ -102,6 +116,68 @@ describe('Auth Store', () => {
     localStorageMock.getItem.mockReturnValue('invalid-token');
 
     await useAuthStore.getState().checkAuth();
+
+    const state = useAuthStore.getState();
+    expect(state.user).toBeNull();
+    expect(state.isAuthenticated).toBe(false);
+  });
+
+  it('should return early when no token exists during checkAuth', async () => {
+    const localStorageMock = window.localStorage as any;
+    localStorageMock.getItem.mockReturnValue(null);
+
+    await useAuthStore.getState().checkAuth();
+
+    const state = useAuthStore.getState();
+    expect(state.isLoading).toBe(false);
+    expect(state.isAuthenticated).toBe(false);
+    expect(mockGet).not.toHaveBeenCalled();
+  });
+
+  it('should change password successfully', async () => {
+    useAuthStore.setState({
+      user: { id: 1, username: 'admin', name: 'Admin', role: 'admin', team_id: null, is_first_login: true },
+      isAuthenticated: true,
+    });
+    mockPost.mockResolvedValue({ data: { success: true } });
+
+    await useAuthStore.getState().changePassword('oldpass', 'newpass');
+
+    const state = useAuthStore.getState();
+    expect(state.user?.is_first_login).toBe(false);
+    expect(state.isLoading).toBe(false);
+  });
+
+  it('should handle change password error', async () => {
+    mockPost.mockRejectedValue({
+      response: { data: { error: 'Password mismatch' } },
+    });
+
+    try {
+      await useAuthStore.getState().changePassword('oldpass', 'newpass');
+    } catch {
+      // Expected to throw
+    }
+
+    const state = useAuthStore.getState();
+    expect(state.error).toBe('Password mismatch');
+    expect(state.isLoading).toBe(false);
+  });
+
+  it('should logout on 401 change password response', async () => {
+    useAuthStore.setState({
+      user: { id: 1, username: 'admin', name: 'Admin', role: 'admin', team_id: null, is_first_login: false },
+      isAuthenticated: true,
+    });
+    mockPost.mockRejectedValue({
+      response: { status: 401, data: { error: 'Unauthorized' } },
+    });
+
+    try {
+      await useAuthStore.getState().changePassword('oldpass', 'newpass');
+    } catch {
+      // Expected to throw
+    }
 
     const state = useAuthStore.getState();
     expect(state.user).toBeNull();
